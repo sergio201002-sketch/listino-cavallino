@@ -28,6 +28,11 @@ header{background:#111;padding:0 16px;height:54px;display:flex;align-items:cente
 .cart-fab.has{background:#1A7A3C;box-shadow:0 4px 18px rgba(26,122,60,.45)}
 .cart-fab-count{position:absolute;top:6px;right:8px;background:#fff;color:#1A6EFF;border-radius:10px;font-size:10px;font-weight:800;padding:1px 5px;min-width:16px;text-align:center;line-height:16px}
 .cart-fab.has .cart-fab-count{color:#1A7A3C}
+/* TAB BAR mobile */
+.mobile-tab-bar{display:none;background:#111;border-top:1px solid rgba(255,255,255,.08);padding:0}
+.mobile-tab-bar button{flex:1;background:none;border:none;color:rgba(255,255,255,.5);padding:5px 4px 4px;font-size:9px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;letter-spacing:.04em;touch-action:manipulation;transition:color .15s;border-bottom:2px solid transparent}
+.mobile-tab-bar button.active{color:#fff;border-bottom-color:#1A6EFF}
+.mobile-tab-bar button svg{width:14px;height:14px}
 .cart-count{background:rgba(255,255,255,.22);border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700}
 .settings-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6);width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .18s;flex-shrink:0}
 .settings-btn:hover{background:rgba(255,255,255,.18);color:#fff}
@@ -564,20 +569,26 @@ header{background:#111;padding:0 16px;height:54px;display:flex;align-items:cente
 }
 
 @media(max-width:680px){
-  header{height:auto;padding:8px 10px;flex-wrap:nowrap;gap:8px;align-items:center}
+  /* HEADER: logo a sinistra, cloud+settings+carrello a destra — tutto in una riga */
+  header{height:auto;padding:8px 10px;flex-wrap:nowrap;gap:6px;align-items:center}
   .logo-sub{display:none}
   .logo-text{font-size:13px}
   #logo-img-wrap,#logo-img,#logo-placeholder{width:32px!important;height:32px!important}
-  /* header right: settings | nav-tabs | cloud */
   header>div:last-child{display:flex;align-items:center;gap:4px;flex-shrink:0;flex-wrap:nowrap}
-  .cart-btn{display:none} /* nascosto su mobile — sostituito da FAB */
-  .settings-btn{order:1;flex-shrink:0;padding:7px}
-  .nav-tabs{order:2;flex-shrink:0;gap:1px;padding:2px}
-  .nav-tab{padding:6px 10px;font-size:11px}
-  #fb-login-btn{order:3;font-size:11px;padding:6px 10px;flex-shrink:0;display:flex!important}
-  /* FAB carrello visibile su mobile */
-  .cart-fab{display:flex}
-  /* filtri: 2 per riga, ricerca sotto */
+  /* nascondi nav-tabs dall'header su mobile (vanno nella tab bar sotto) */
+  .nav-tabs{display:none}
+  /* cloud button: solo icona + testo breve */
+  #fb-login-btn{font-size:11px;padding:6px 8px;flex-shrink:0;display:flex!important;gap:4px}
+  #fb-login-btn svg{width:12px;height:12px}
+  /* settings */
+  .settings-btn{padding:7px;flex-shrink:0}
+  /* carrello: solo icona + numero */
+  .cart-btn{padding:7px 10px;gap:0;flex-shrink:0}
+  .cart-btn-label{display:none}
+  .cart-fab{display:none}
+  /* TAB BAR mobile (sostituisce nav-tabs) */
+  .mobile-tab-bar{display:flex}
+  /* filtri: 2 per riga */
   .filters-grid{grid-template-columns:1fr 1fr;gap:6px}
   .search-row{grid-column:1/-1}
   .filters{padding:8px 12px}
@@ -585,13 +596,17 @@ header{background:#111;padding:0 16px;height:54px;display:flex;align-items:cente
   .storico{padding:10px 12px}
   .sec-hdr{padding:7px 10px;font-size:12px}
   .card{grid-template-columns:44px 1fr}
-  .card-left{padding:10px 3px}
-  .code-text{font-size:10px}
-  .card-body{padding:9px 11px;gap:4px}
-  .card-series{font-size:13px}
-  .card-color{font-size:11px}
-  .card-ctrl{padding:8px 11px;gap:6px}
-  .mq-inp{font-size:15px}
+  .card-left{padding:6px 3px}
+  .card-left-text{font-size:9px}
+  .code-text{font-size:9px}
+  .card-body{padding:7px 10px;gap:3px}
+  .card-series{font-size:12px}
+  .card-color{font-size:10px}
+  .card-ctrl{padding:6px 10px;gap:5px}
+  .price-label{font-size:8px}
+  .price-val{font-size:14px}
+  .mq-inp{font-size:14px}
+  .tag{font-size:8px;padding:1px 5px}
 }
 
 @media(max-width:480px){
@@ -688,7 +703,7 @@ window.FIREBASE_CONFIG = {
     </nav>
     <button class="cart-btn" id="cart-btn" onclick="openCart()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-      Carrello <span class="cart-count" id="cart-count">0</span>
+      <span class="cart-btn-label">Carrello </span><span class="cart-count" id="cart-count">0</span>
     </button>
     <button id="fb-login-btn" onclick="fbToggleLogin()" title="Sincronizzazione cloud" style="background:none;border:1.5px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
@@ -699,6 +714,16 @@ window.FIREBASE_CONFIG = {
     </button>
   </div>
 </header>
+<nav class="mobile-tab-bar" id="mobile-tab-bar">
+  <button class="active" id="mtab-listino" onclick="showPage('listino')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    Listino
+  </button>
+  <button id="mtab-storico" onclick="showPage('storico')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    Clienti
+  </button>
+</nav>
 
 <div class="page active" id="page-listino">
   <div class="filters">
@@ -951,9 +976,25 @@ window.FIREBASE_CONFIG = {
       <label>Espositore</label>
       <select id="se-esp"></select>
     </div>
+    <!-- Creazione rapida espositore se il cliente non ne ha -->
+    <div id="se-new-esp-wrap" style="display:none;margin-top:10px;background:#F4F3EF;border-radius:8px;padding:12px;border:1.5px dashed #D5D2CA">
+      <div style="font-size:11px;font-weight:700;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">Crea nuovo espositore</div>
+      <div class="mfg" style="margin-bottom:8px">
+        <label>Nome espositore</label>
+        <input type="text" id="se-new-name" placeholder="es. Espositore Showroom" style="border:1.5px solid #D5D2CA;border-radius:7px;padding:8px 10px;font-size:13px;width:100%">
+      </div>
+      <div class="mfg" style="margin-bottom:8px">
+        <label>Tipo</label>
+        <select id="se-new-type" style="border:1.5px solid #D5D2CA;border-radius:7px;padding:8px 10px;font-size:13px;width:100%">
+          <option value="linear">Lineare (lista campioni)</option>
+          <option value="rot">Merch rotante (griglia)</option>
+        </select>
+      </div>
+      <button class="mbtn-p" style="width:100%" onclick="seCreateAndSave()">+ Crea espositore e salva campioni</button>
+    </div>
     <div class="modal-btns">
       <button class="mbtn-g" onclick="closeModal('m-save-esp')">Annulla</button>
-      <button class="mbtn-p" onclick="saveCartToEsp()">Salva</button>
+      <button class="mbtn-p" id="se-save-btn" onclick="saveCartToEsp()">Salva</button>
     </div>
   </div>
 </div>
@@ -1423,8 +1464,10 @@ window.onFbAuthChange = async function(user){
 function showPage(id){
   document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
   document.querySelectorAll('.nav-tab').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelectorAll('.mobile-tab-bar button').forEach(function(b){ b.classList.remove('active'); });
   document.getElementById('page-'+id).classList.add('active');
   document.getElementById('tab-'+id).classList.add('active');
+  var mtab=document.getElementById('mtab-'+id); if(mtab) mtab.classList.add('active');
   if(id==='storico') renderClientList();
 }
 
@@ -2611,13 +2654,32 @@ function openSaveEsp(){
 function seFillEsp(){
   var cid=document.getElementById('se-client').value;
   var sel=document.getElementById('se-esp');
+  var newWrap=document.getElementById('se-new-esp-wrap');
+  var saveBtn=document.getElementById('se-save-btn');
   sel.innerHTML='';
   var esps=expositors.filter(function(e){return e.cid===cid;});
   if(!esps.length){
-    var o=document.createElement('option'); o.value=''; o.textContent='— nessun espositore (creane uno prima) —'; sel.appendChild(o);
+    var o=document.createElement('option'); o.value=''; o.textContent='— nessun espositore —'; sel.appendChild(o);
+    if(newWrap){ newWrap.style.display=''; }
+    if(saveBtn){ saveBtn.style.display='none'; }
   } else {
     esps.forEach(function(e){ var o=document.createElement('option'); o.value=e.id; o.textContent=e.name+(e.samples?' ('+e.samples.length+' camp.)':''); sel.appendChild(o); });
+    if(newWrap){ newWrap.style.display='none'; }
+    if(saveBtn){ saveBtn.style.display=''; }
   }
+}
+
+function seCreateAndSave(){
+  var cid=document.getElementById('se-client').value;
+  var nome=(document.getElementById('se-new-name').value||'').trim();
+  if(!nome){ toast('Inserisci un nome per l\'espositore'); return; }
+  var tipo=document.getElementById('se-new-type').value;
+  var eid='esp_'+Date.now().toString(36);
+  var newEsp={id:eid,cid:cid,name:nome,samples:[],notes:'',shape:tipo==='rot'?'rot':'',total:tipo==='rot'?30:'',perSide:''};
+  expositors.push(newEsp);
+  // Ora salva i campioni in questo nuovo espositore
+  document.getElementById('se-esp').innerHTML='<option value="'+eid+'">'+nome+'</option>';
+  saveCartToEsp();
 }
 
 function saveCartToEsp(){
