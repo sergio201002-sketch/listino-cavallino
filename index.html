@@ -550,7 +550,9 @@ header{background:#111;padding:0 16px;height:54px;display:flex;align-items:cente
   .cart-btn{order:6;padding:7px 11px;gap:4px}
   #fb-login-btn{order:1;font-size:10px;padding:4px 8px}
   .settings-btn{order:2}
+  /* filtri: 2 per riga, ricerca sotto */
   .filters-grid{grid-template-columns:1fr 1fr;gap:6px}
+  .search-row{grid-column:1/-1}
   .filters{padding:8px 12px}
   .main{padding:10px 12px}
   .storico{padding:10px 12px}
@@ -566,7 +568,8 @@ header{background:#111;padding:0 16px;height:54px;display:flex;align-items:cente
 }
 
 @media(max-width:480px){
-  .filters-grid{grid-template-columns:1fr}
+  /* mantieni 2 colonne anche sotto 480px */
+  .filters-grid{grid-template-columns:1fr 1fr}
   header>div:last-child{gap:4px}
   .nav-tab{padding:7px 9px}
   .cart-btn{padding:6px 9px}
@@ -578,9 +581,10 @@ header{background:#111;padding:0 16px;height:54px;display:flex;align-items:cente
   .ci-main{padding:4px 8px;gap:4px}
 }
 
-@media(max-width:680px){ /* carrello fullscreen su mobile */
+@media(max-width:680px){ /* carrello su mobile: pannello da destra */
   .storico-layout{grid-template-columns:1fr}
-  .cart-panel{width:100vw;max-width:100vw;right:0}
+  .cart-panel{width:100vw;max-width:100vw;right:0;left:auto;transform:translateX(100%)}
+  .cart-panel.open{transform:translateX(0)}
 }
 /* tap-friendly su mobile */
 .btn-add,.btn-rem,.btn-save-ord,.btn-clr,.cart-btn,.nav-tab,.settings-btn,
@@ -1246,10 +1250,23 @@ function _fbApplyRemote(d){
 }
 
 async function fbLogin(){
-  if(!window.fbReady){ alert('Firebase non disponibile — controlla la connessione.'); return; }
+  if(!window.fbReady){ toast('Firebase non disponibile — controlla la connessione'); return; }
   try {
     await window.fbAPI.signInWithPopup(window.fbAuth, window.fbProvider);
-  } catch(e){ console.error('login', e); }
+  } catch(e){
+    console.error('login', e);
+    var msg = 'Errore login';
+    if(e.code==='auth/unauthorized-domain'){
+      msg = 'Dominio non autorizzato. Apri il sito da GitHub Pages oppure aggiungi il dominio in Firebase Console → Authentication → Authorized domains.';
+    } else if(e.code==='auth/popup-blocked'){
+      msg = 'Popup bloccato dal browser. Consenti i popup per questo sito.';
+    } else if(e.code==='auth/popup-closed-by-user'){
+      return;
+    } else if(e.message){
+      msg = e.message;
+    }
+    toast(msg);
+  }
 }
 
 async function fbLogout(){
@@ -2462,11 +2479,25 @@ function espFinishRename(eid){
 }
 
 function espDelEsp(eid){
-  if(!confirm('Eliminare questo espositore?')) return;
-  var e=expositors.find(function(x){return x.id===eid;});
-  var cid=e?e.cid:'';
-  expositors=expositors.filter(function(x){return x.id!==eid;});
-  lsSave(); espRefreshPane(cid); toast('Eliminato');
+  var e=expositors.find(function(x){return x.id===eid;}); if(!e) return;
+  var cid=e.cid;
+  var nome=e.name||'espositore';
+  // Mostra bottone di conferma inline invece di confirm() (che su mobile può bloccarsi)
+  var card=document.getElementById('esp-'+eid); if(!card) return;
+  var existing=card.querySelector('.esp-del-confirm');
+  if(existing){ // secondo tap: elimina davvero
+    expositors=expositors.filter(function(x){return x.id!==eid;});
+    lsSave(); espRefreshPane(cid); toast('"'+nome+'" eliminato');
+    return;
+  }
+  var bar=document.createElement('div');
+  bar.className='esp-del-confirm';
+  bar.style.cssText='background:#fff0f0;border-top:1px solid #fcc;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#c0392b';
+  bar.innerHTML='Confermi eliminazione?'
+    +'<button onclick="espDelEsp(\''+eid+'\')" style="background:#c0392b;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,0);touch-action:manipulation">Elimina</button>'
+    +'<button onclick="this.parentNode.remove()" style="background:none;border:1px solid #ccc;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;touch-action:manipulation">Annulla</button>';
+  card.appendChild(bar);
+  setTimeout(function(){ if(bar.parentNode) bar.remove(); },4000);
 }
 
 function espSearch(eid, val){
