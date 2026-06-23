@@ -35,8 +35,9 @@ header{background:#111;padding:0 16px;height:54px;display:flex;align-items:cente
 .sett-head h2{color:#fff;font-size:16px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
 .sett-close{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.7);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .sett-close:hover{background:rgba(255,255,255,.2);color:#fff}
-.sett-tabs{display:flex;border-bottom:1px solid #E4E2DC;flex-shrink:0}
-.sett-tab{padding:11px 18px;background:none;border:none;border-bottom:2px solid transparent;font-size:12px;font-weight:600;color:#888;cursor:pointer;transition:all .18s;letter-spacing:.04em}
+.sett-tabs{display:flex;border-bottom:1px solid #E4E2DC;flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.sett-tabs::-webkit-scrollbar{display:none}
+.sett-tab{padding:11px 14px;background:none;border:none;border-bottom:2px solid transparent;font-size:12px;font-weight:600;color:#888;cursor:pointer;transition:all .18s;letter-spacing:.04em;white-space:nowrap;flex-shrink:0}
 .sett-tab.active{color:#111;border-bottom-color:#1A6EFF}
 .sett-body{flex:1;overflow-y:auto;padding:20px}
 
@@ -558,14 +559,17 @@ header{background:#111;padding:0 16px;height:54px;display:flex;align-items:cente
 }
 
 @media(max-width:680px){
-  header{height:auto;padding:8px 12px;flex-wrap:nowrap;gap:6px}
+  header{height:auto;padding:8px 10px;flex-wrap:nowrap;gap:8px;align-items:center}
   .logo-sub{display:none}
-  /* header right: settings | nav-tabs | cart (sempre in fila, nessun wrap) */
-  header>div:last-child{display:flex;align-items:center;gap:5px;flex-shrink:0;flex-wrap:nowrap}
-  .settings-btn{order:1;flex-shrink:0}
+  .logo-text{font-size:13px}
+  #logo-img-wrap,#logo-img,#logo-placeholder{width:32px!important;height:32px!important}
+  /* header right: tutto su una riga compatta */
+  header>div:last-child{display:flex;align-items:center;gap:4px;flex-shrink:0;flex-wrap:nowrap}
   #fb-login-btn{display:none} /* nascosto su mobile, disponibile nelle Impostazioni */
-  .nav-tabs{order:2;flex-shrink:1;gap:1px}
-  .cart-btn{order:3;margin-left:6px;padding:7px 10px;gap:3px;flex-shrink:0}
+  .settings-btn{order:1;flex-shrink:0;padding:7px}
+  .nav-tabs{order:2;flex-shrink:0;gap:1px;padding:2px}
+  .nav-tab{padding:6px 10px;font-size:11px}
+  .cart-btn{order:3;padding:7px 10px;gap:3px;flex-shrink:0;font-size:11px}
   /* filtri: 2 per riga, ricerca sotto */
   .filters-grid{grid-template-columns:1fr 1fr;gap:6px}
   .search-row{grid-column:1/-1}
@@ -584,17 +588,20 @@ header{background:#111;padding:0 16px;height:54px;display:flex;align-items:cente
 }
 
 @media(max-width:480px){
-  /* mantieni 2 colonne anche sotto 480px */
   .filters-grid{grid-template-columns:1fr 1fr}
-  header>div:last-child{gap:4px}
-  .nav-tab{padding:7px 9px}
-  .cart-btn{padding:6px 9px}
+  .nav-tab{padding:6px 8px;font-size:10px}
+  .nav-tab svg{display:none} /* nascondi icone nav su schermi piccoli */
+  .cart-btn{padding:6px 9px;font-size:11px}
   .card-series{font-size:12px}
   .tag{font-size:9px;padding:2px 6px}
   .price-val{font-size:15px}
   .cp-items{padding:8px}
   .ci-top{padding:6px 8px 5px}
   .ci-main{padding:4px 8px;gap:4px}
+  /* modal e settings a piena larghezza */
+  .modal-box{padding:16px;border-radius:10px}
+  .sett-box{border-radius:10px;max-height:95vh}
+  .sett-tab{padding:10px 12px;font-size:11px}
 }
 
 @media(max-width:680px){ /* carrello su mobile: pannello da destra */
@@ -624,14 +631,19 @@ window.FIREBASE_CONFIG = {
   if(cfg.apiKey){
     try {
       const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js");
-      const { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js");
+      const { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js");
       const { getFirestore, doc, setDoc, getDoc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js");
       const app = initializeApp(cfg);
       window.fbAuth = getAuth(app);
       window.fbDb   = getFirestore(app);
       window.fbProvider = new GoogleAuthProvider();
-      window.fbAPI  = { doc, setDoc, getDoc, onSnapshot, signInWithPopup, signOut };
+      window.fbAPI  = { doc, setDoc, getDoc, onSnapshot, signInWithPopup, signInWithRedirect, signOut };
       window.fbReady = true;
+      // Gestisci il risultato del redirect login (ritorno da Google)
+      try {
+        const result = await getRedirectResult(window.fbAuth);
+        if(result && result.user) console.log('Redirect login ok:', result.user.email);
+      } catch(e){ console.warn('getRedirectResult', e); }
       onAuthStateChanged(window.fbAuth, user => {
         window.fbUser = user || null;
         if(typeof window.onFbAuthChange === 'function') window.onFbAuthChange(user);
@@ -1206,13 +1218,23 @@ var _myDeviceId = (function(){
 function _fbSetStatus(s){
   var btn = document.getElementById('fb-login-btn');
   var txt = document.getElementById('fb-status-txt');
-  if(!txt) return;
-  var labels = {offline:'☁ Accedi', saving:'☁ Sync…', saved:'☁ Sync OK', error:'☁ Accedi'};
-  txt.textContent = labels[s] || s;
+  // Mostra nome utente se loggato, altrimenti label generica
+  var label;
+  if(s==='saved' && window.fbUser){
+    var name = window.fbUser.displayName || window.fbUser.email || '';
+    label = '☁ ' + (name.split(' ')[0] || 'Sync OK');
+  } else {
+    var labels = {offline:'☁ Accedi', saving:'☁ Sync…', saved:'☁ Sync OK', error:'☁ Accedi'};
+    label = labels[s] || s;
+  }
+  if(txt) txt.textContent = label;
   if(btn){
-    btn.style.borderColor = s==='saved' ? 'rgba(110,231,160,.6)' : s==='error' ? 'rgba(255,100,100,.6)' : 'rgba(255,255,255,.3)';
+    btn.style.display = ''; // sempre visibile (anche su mobile quando loggato)
+    btn.style.borderColor = s==='saved' ? 'rgba(110,231,160,.6)' : 'rgba(255,255,255,.3)';
     btn.style.color = s==='saved' ? '#6EE7A0' : '#fff';
   }
+  // Aggiorna anche il pannello impostazioni
+  _fbUpdateSettingsUI();
 }
 
 function _fbGetPayload(){
@@ -1273,15 +1295,23 @@ function _fbApplyRemote(d){
 
 async function fbLogin(){
   if(!window.fbReady){ toast('Firebase non disponibile — controlla la connessione'); return; }
+  var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   try {
-    await window.fbAPI.signInWithPopup(window.fbAuth, window.fbProvider);
+    if(isMobile){
+      // Su mobile usa redirect (i popup vengono bloccati)
+      _fbSetStatus('saving');
+      await window.fbAPI.signInWithRedirect(window.fbAuth, window.fbProvider);
+    } else {
+      await window.fbAPI.signInWithPopup(window.fbAuth, window.fbProvider);
+    }
   } catch(e){
     console.error('login', e);
     var msg = 'Errore login';
     if(e.code==='auth/unauthorized-domain'){
-      msg = 'Dominio non autorizzato. Apri il sito da GitHub Pages oppure aggiungi il dominio in Firebase Console → Authentication → Authorized domains.';
+      msg = 'Dominio non autorizzato — assicurati di aprire il sito da GitHub Pages.';
     } else if(e.code==='auth/popup-blocked'){
-      msg = 'Popup bloccato dal browser. Consenti i popup per questo sito.';
+      // Fallback a redirect se il popup è bloccato
+      try { await window.fbAPI.signInWithRedirect(window.fbAuth, window.fbProvider); return; } catch(_){}
     } else if(e.code==='auth/popup-closed-by-user'){
       return;
     } else if(e.message){
@@ -1325,7 +1355,7 @@ async function fbManualSave(){
 
 async function fbManualLoad(){
   if(!window.fbReady || !window.fbUser){ toast('Devi prima accedere con Google (tab Cloud)'); return; }
-  if(!confirm('Caricare i dati dal cloud? I dati locali verranno sostituiti.')) return;
+  if(!confirm('Caricare i dati dal cloud? I dati locali verranno sostituiti.')) return; // OK desktop
   toast('Caricamento dal cloud…');
   try {
     var ref = window.fbAPI.doc(window.fbDb, 'cavallino', window.fbUser.uid);
@@ -1366,6 +1396,8 @@ window.onFbAuthChange = async function(user){
       await cloudSaveNow();
     }
     _fbSetStatus('saved');
+    var nome = user.displayName ? user.displayName.split(' ')[0] : (user.email||'');
+    toast('✓ Connesso come ' + nome + ' — dati sincronizzati');
     _fbUnsub = window.fbAPI.onSnapshot(ref, function(snap){
       if(!snap.exists()) return;
       var d = snap.data();
@@ -1815,7 +1847,7 @@ function refreshCard(pid){
 }
 
 function clearCart(){
-  if(!confirm('Svuotare il carrello?')) return;
+  if(!confirm('Svuotare il carrello?')) return; // confirm OK qui: è desktop only
   cart=[]; lsSave(); updateBadge(); updateCartUI();
   filtered.forEach(function(p){ refreshCard(p.id); });
 }
@@ -2295,13 +2327,26 @@ function saveClient(){
 }
 
 function deleteClient(){
-  if(!editClientId||!confirm('Eliminare?')) return;
-  clients=clients.filter(function(c){return c.id!==editClientId;});
-  orders=orders.filter(function(o){return o.cid!==editClientId;});
-  expositors=expositors.filter(function(e){return e.cid!==editClientId;});
-  lsSave(); closeModal('m-client'); activeClient=null;
-  document.getElementById('detail-col').innerHTML='<div class="no-sel"><span>Seleziona un cliente</span></div>';
-  renderClientList(); toast('Eliminato');
+  if(!editClientId) return;
+  var existing=document.getElementById('del-client-confirm');
+  if(existing){
+    clients=clients.filter(function(c){return c.id!==editClientId;});
+    orders=orders.filter(function(o){return o.cid!==editClientId;});
+    expositors=expositors.filter(function(e){return e.cid!==editClientId;});
+    lsSave(); closeModal('m-client'); activeClient=null;
+    document.getElementById('detail-col').innerHTML='<div class="no-sel"><span>Seleziona un cliente</span></div>';
+    renderClientList(); toast('Cliente eliminato');
+    return;
+  }
+  var bar=document.createElement('div');
+  bar.id='del-client-confirm';
+  bar.style.cssText='background:#fff0f0;border:1px solid #fcc;border-radius:8px;padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#c0392b;flex-wrap:wrap';
+  bar.innerHTML='Eliminare cliente e tutti i suoi ordini?'
+    +'<button onclick="deleteClient()" style="background:#c0392b;color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;touch-action:manipulation;margin-left:auto">Elimina</button>'
+    +'<button onclick="document.getElementById(\'del-client-confirm\').remove()" style="background:none;border:1px solid #ccc;border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer;touch-action:manipulation">Annulla</button>';
+  var box=document.querySelector('#m-client .modal-box');
+  box.insertBefore(bar, box.firstChild);
+  setTimeout(function(){ if(bar.parentNode) bar.remove(); },5000);
 }
 
 function renderDetail(id){
@@ -2381,7 +2426,8 @@ function copyOrdText(){
 }
 
 function loadOrder(){
-  if(!currentOid||!confirm('Sostituire il carrello?')) return;
+  if(!currentOid) return;
+  if(!confirm('Sostituire il carrello con questo ordine?')) return; // OK desktop
   var o=orders.find(function(x){return x.id===currentOid;}); if(!o) return;
   cart=JSON.parse(JSON.stringify(o.items));
   cart.forEach(function(item){
@@ -3009,11 +3055,6 @@ function exportEspXls(cid){
 }
 
 function delEsp(eid,cid){ espDelEsp(eid); }
-function delEsp(eid,cid){
-  if(!confirm('Eliminare?')) return;
-  expositors=expositors.filter(function(e){return e.id!==eid;});
-  lsSave(); renderDetail(cid);
-}
 
 // === MODALS ===
 function openModal(id){ document.getElementById(id).classList.add('open'); }
@@ -3403,7 +3444,7 @@ function prodSaveForm(){
 
 function prodDeleteCurrent(){
   if(!_prodFormId) return;
-  if(!confirm('Eliminare questo prodotto personalizzato?')) return;
+  if(!confirm('Eliminare questo prodotto personalizzato?')) return; // usato solo su desktop
   var id=_prodFormId;
   _customProds=_customProds.filter(function(cp){ return cp.id!==id; });
   _customProdsSave();
@@ -3490,7 +3531,7 @@ function etSave(){
   etRenderList(); toast('Tipo creato');
 }
 function etDelete(tid){
-  if(!confirm('Eliminare questo tipo?')) return;
+  if(!confirm('Eliminare questo tipo?')) return; // usato solo su desktop
   lsSaveTypes(lsGetTypes().filter(function(t){return t.id!==tid;}));
   etRenderList(); toast('Eliminato');
 }
