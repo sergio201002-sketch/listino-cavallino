@@ -23,6 +23,11 @@ header{background:#111;padding:0 16px;height:54px;display:flex;align-items:cente
 .cart-btn{display:flex;align-items:center;gap:6px;background:#1A6EFF;color:white;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.04em;transition:all .18s}
 .cart-btn:hover{background:#0050CC}
 .cart-btn.has{background:#1A7A3C}
+/* FAB carrello mobile */
+.cart-fab{display:none;position:fixed;bottom:22px;right:16px;z-index:200;background:#1A6EFF;color:#fff;border:none;border-radius:50px;width:58px;height:58px;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(26,110,255,.45);cursor:pointer;touch-action:manipulation;transition:background .18s}
+.cart-fab.has{background:#1A7A3C;box-shadow:0 4px 18px rgba(26,122,60,.45)}
+.cart-fab-count{position:absolute;top:6px;right:8px;background:#fff;color:#1A6EFF;border-radius:10px;font-size:10px;font-weight:800;padding:1px 5px;min-width:16px;text-align:center;line-height:16px}
+.cart-fab.has .cart-fab-count{color:#1A7A3C}
 .cart-count{background:rgba(255,255,255,.22);border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700}
 .settings-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6);width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .18s;flex-shrink:0}
 .settings-btn:hover{background:rgba(255,255,255,.18);color:#fff}
@@ -563,13 +568,15 @@ header{background:#111;padding:0 16px;height:54px;display:flex;align-items:cente
   .logo-sub{display:none}
   .logo-text{font-size:13px}
   #logo-img-wrap,#logo-img,#logo-placeholder{width:32px!important;height:32px!important}
-  /* header right: tutto su una riga compatta */
+  /* header right: settings | nav-tabs | cloud */
   header>div:last-child{display:flex;align-items:center;gap:4px;flex-shrink:0;flex-wrap:nowrap}
-  #fb-login-btn{display:none} /* nascosto su mobile, disponibile nelle Impostazioni */
+  .cart-btn{display:none} /* nascosto su mobile — sostituito da FAB */
   .settings-btn{order:1;flex-shrink:0;padding:7px}
   .nav-tabs{order:2;flex-shrink:0;gap:1px;padding:2px}
   .nav-tab{padding:6px 10px;font-size:11px}
-  .cart-btn{order:3;padding:7px 10px;gap:3px;flex-shrink:0;font-size:11px}
+  #fb-login-btn{order:3;font-size:11px;padding:6px 10px;flex-shrink:0;display:flex!important}
+  /* FAB carrello visibile su mobile */
+  .cart-fab{display:flex}
   /* filtri: 2 per riga, ricerca sotto */
   .filters-grid{grid-template-columns:1fr 1fr;gap:6px}
   .search-row{grid-column:1/-1}
@@ -654,6 +661,11 @@ window.FIREBASE_CONFIG = {
 </head>
 <body>
 <div id="err-panel"></div>
+<!-- FAB carrello mobile -->
+<button class="cart-fab" id="cart-fab" onclick="openCart()">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+  <span class="cart-fab-count" id="cart-fab-count">0</span>
+</button>
 <header>
   <div class="logo">
     <div id="logo-img-wrap" style="flex-shrink:0;width:42px;height:42px;display:flex;align-items:center;justify-content:center">
@@ -1295,29 +1307,25 @@ function _fbApplyRemote(d){
 
 async function fbLogin(){
   if(!window.fbReady){ toast('Firebase non disponibile — controlla la connessione'); return; }
-  var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   try {
-    if(isMobile){
-      // Su mobile usa redirect (i popup vengono bloccati)
-      _fbSetStatus('saving');
-      await window.fbAPI.signInWithRedirect(window.fbAuth, window.fbProvider);
-    } else {
-      await window.fbAPI.signInWithPopup(window.fbAuth, window.fbProvider);
-    }
+    // Prova sempre popup prima (funziona su Chrome Android e desktop)
+    await window.fbAPI.signInWithPopup(window.fbAuth, window.fbProvider);
   } catch(e){
-    console.error('login', e);
-    var msg = 'Errore login';
+    console.error('login popup', e);
+    if(e.code==='auth/popup-closed-by-user') return;
     if(e.code==='auth/unauthorized-domain'){
-      msg = 'Dominio non autorizzato — assicurati di aprire il sito da GitHub Pages.';
-    } else if(e.code==='auth/popup-blocked'){
-      // Fallback a redirect se il popup è bloccato
-      try { await window.fbAPI.signInWithRedirect(window.fbAuth, window.fbProvider); return; } catch(_){}
-    } else if(e.code==='auth/popup-closed-by-user'){
+      toast('Dominio non autorizzato — assicurati di aprire il sito da GitHub Pages.');
       return;
-    } else if(e.message){
-      msg = e.message;
     }
-    toast(msg);
+    // Popup bloccato (Safari iOS) → usa redirect
+    if(e.code==='auth/popup-blocked' || e.code==='auth/operation-not-supported-in-this-environment'){
+      try {
+        toast('Apertura login Google…');
+        await window.fbAPI.signInWithRedirect(window.fbAuth, window.fbProvider);
+      } catch(e2){ toast('Errore login: ' + (e2.message||e2.code||'')); }
+      return;
+    }
+    toast('Errore login: ' + (e.message||e.code||''));
   }
 }
 
@@ -1372,15 +1380,15 @@ async function fbManualLoad(){
 }
 
 window.onFbAuthChange = async function(user){
-  var btn = document.getElementById('fb-login-btn');
-  var txt = document.getElementById('fb-status-txt');
   if(_fbUnsub){ try{ _fbUnsub(); }catch(_){} _fbUnsub = null; }
   if(!user){
+    // Non loggato
     _fbSetStatus('offline');
-    if(txt) txt.textContent = 'Accedi';
     return;
   }
-  _fbSetStatus('saving');
+  // Loggato: mostra subito il nome, poi sincronizza
+  _fbSetStatus('saved'); // mostra nome subito
+  var nome = user.displayName ? user.displayName.split(' ')[0] : (user.email||'');
   try {
     var ref = window.fbAPI.doc(window.fbDb, 'cavallino', user.uid);
     var snap = await window.fbAPI.getDoc(ref);
@@ -1395,16 +1403,19 @@ window.onFbAuthChange = async function(user){
     } else {
       await cloudSaveNow();
     }
-    _fbSetStatus('saved');
-    var nome = user.displayName ? user.displayName.split(' ')[0] : (user.email||'');
-    toast('✓ Connesso come ' + nome + ' — dati sincronizzati');
+    toast('✓ Connesso come ' + nome);
     _fbUnsub = window.fbAPI.onSnapshot(ref, function(snap){
       if(!snap.exists()) return;
       var d = snap.data();
       if(!d || !d.data) return;
       try { _fbApplyRemote(JSON.parse(d.data)); } catch(e){}
     });
-  } catch(e){ console.error('fbInit', e); _fbSetStatus('offline'); }
+  } catch(e){
+    console.error('fbSync', e);
+    // Sync fallita ma rimane loggato — non tornare ad 'Accedi'
+    _fbSetStatus('saved');
+    toast('⚠ ' + nome + ' connesso, sync fallita');
+  }
   _fbUpdateSettingsUI();
 };
 
@@ -1853,8 +1864,13 @@ function clearCart(){
 }
 
 function updateBadge(){
-  document.getElementById('cart-count').textContent = cart.length;
-  document.getElementById('cart-btn').className = 'cart-btn'+(cart.length?' has':'');
+  var n=cart.length;
+  document.getElementById('cart-count').textContent = n;
+  document.getElementById('cart-btn').className = 'cart-btn'+(n?' has':'');
+  var fab=document.getElementById('cart-fab');
+  var fabN=document.getElementById('cart-fab-count');
+  if(fab) fab.className='cart-fab'+(n?' has':'');
+  if(fabN) fabN.textContent=n;
 }
 
 function openCart(){
