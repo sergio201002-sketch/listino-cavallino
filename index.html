@@ -558,13 +558,14 @@ header{background:#111;padding:0 16px;height:54px;display:flex;align-items:cente
 }
 
 @media(max-width:680px){
-  header{height:auto;padding:10px 12px;flex-wrap:wrap;gap:6px}
+  header{height:auto;padding:8px 12px;flex-wrap:nowrap;gap:6px}
   .logo-sub{display:none}
-  header>div:last-child{width:100%;justify-content:flex-start;align-items:center;gap:5px;flex-wrap:wrap}
-  .nav-tabs{order:5;gap:2px;margin-left:auto}
-  .cart-btn{order:6;padding:7px 11px;gap:4px}
-  #fb-login-btn{order:1;font-size:10px;padding:4px 8px}
-  .settings-btn{order:2}
+  /* header right: settings | nav-tabs | cart (sempre in fila, nessun wrap) */
+  header>div:last-child{display:flex;align-items:center;gap:5px;flex-shrink:0;flex-wrap:nowrap}
+  .settings-btn{order:1;flex-shrink:0}
+  #fb-login-btn{display:none} /* nascosto su mobile, disponibile nelle Impostazioni */
+  .nav-tabs{order:2;flex-shrink:1;gap:1px}
+  .cart-btn{order:3;margin-left:6px;padding:7px 10px;gap:3px;flex-shrink:0}
   /* filtri: 2 per riga, ricerca sotto */
   .filters-grid{grid-template-columns:1fr 1fr;gap:6px}
   .search-row{grid-column:1/-1}
@@ -635,7 +636,7 @@ window.FIREBASE_CONFIG = {
         window.fbUser = user || null;
         if(typeof window.onFbAuthChange === 'function') window.onFbAuthChange(user);
       });
-    } catch(e){ console.error('Firebase init failed', e); window.fbReady = false; }
+    } catch(e){ console.error('Firebase init failed', e); window.fbReady = false; _fbSetStatus('offline'); }
   }
 </script>
 </head>
@@ -1206,7 +1207,7 @@ function _fbSetStatus(s){
   var btn = document.getElementById('fb-login-btn');
   var txt = document.getElementById('fb-status-txt');
   if(!txt) return;
-  var labels = {offline:'Accedi', saving:'Sync…', saved:'☁ Sync OK', error:'⚠ Errore'};
+  var labels = {offline:'☁ Accedi', saving:'☁ Sync…', saved:'☁ Sync OK', error:'☁ Accedi'};
   txt.textContent = labels[s] || s;
   if(btn){
     btn.style.borderColor = s==='saved' ? 'rgba(110,231,160,.6)' : s==='error' ? 'rgba(255,100,100,.6)' : 'rgba(255,255,255,.3)';
@@ -1239,7 +1240,7 @@ async function cloudSaveNow(){
     var ref = window.fbAPI.doc(window.fbDb, 'cavallino', window.fbUser.uid);
     await window.fbAPI.setDoc(ref, { data: JSON.stringify(_fbGetPayload()), device: _myDeviceId, updatedAt: Date.now() });
     _fbSetStatus('saved');
-  } catch(e){ console.error('cloudSaveNow', e); _fbSetStatus('error'); }
+  } catch(e){ console.error('cloudSaveNow', e); /* non mostrare errore per salvataggio silenzioso */ }
 }
 
 function cloudSave(){
@@ -1371,7 +1372,7 @@ window.onFbAuthChange = async function(user){
       if(!d || !d.data) return;
       try { _fbApplyRemote(JSON.parse(d.data)); } catch(e){}
     });
-  } catch(e){ console.error('fbInit', e); _fbSetStatus('error'); }
+  } catch(e){ console.error('fbInit', e); _fbSetStatus('offline'); }
   _fbUpdateSettingsUI();
 };
 
@@ -2908,7 +2909,7 @@ function espRenderCard(cid, e){
   h+='<div class="esp-name-display" id="espn-'+e.id+'" onclick="event.stopPropagation();espStartRename(\''+e.id+'\')">'+x(e.name)+typeBadge+'</div>';
   h+='<input class="esp-name-input" id="espi-'+e.id+'" value="'+x(e.name)+'" onclick="event.stopPropagation()" onblur="espFinishRename(\''+e.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\'Escape\')this.blur()">';
   h+='<span class="esp-count" id="espc-'+e.id+'">'+espCountLabel(e)+'</span>';
-  h+='<button class="btn-del-esp" onclick="event.stopPropagation();espDelEsp(\''+e.id+'\')">&#128465;</button>';
+  h+='<button class="btn-del-esp" onclick="event.stopPropagation();espDelEsp(\''+e.id+'\')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>';
   h+='</div>';
   h+='<div class="esp-body">';
   if(e.shape==='rot'){
@@ -3506,7 +3507,7 @@ function etRenderList(){
     return '<div class="esp-type-card">'
       +'<div class="etc-icon">'+icon+'</div>'
       +'<div class="etc-info"><div class="etc-name">'+x(t.name)+'</div><div class="etc-sub">'+sub+'</div></div>'
-      +'<button class="etc-del" onclick="etDelete(\''+t.id+'\')">&#128465;</button>'
+      +'<button class="etc-del" onclick="etDelete(\''+t.id+'\')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>'
       +'</div>';
   }).join('');
 }
