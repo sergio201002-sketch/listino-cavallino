@@ -569,25 +569,24 @@ header{background:#111;padding:0 16px;height:54px;display:flex;align-items:cente
 }
 
 @media(max-width:680px){
-  /* HEADER: logo a sinistra, cloud+settings+carrello a destra — tutto in una riga */
+  /* HEADER mobile: sinistra logo, destra cloud+settings+carrello */
   header{height:auto;padding:8px 10px;flex-wrap:nowrap;gap:6px;align-items:center}
   .logo-sub{display:none}
   .logo-text{font-size:13px}
   #logo-img-wrap,#logo-img,#logo-placeholder{width:32px!important;height:32px!important}
-  header>div:last-child{display:flex;align-items:center;gap:4px;flex-shrink:0;flex-wrap:nowrap}
-  /* nascondi nav-tabs dall'header su mobile (vanno nella tab bar sotto) */
+  /* sinistra: nascondi cloud e settings (restano solo logo) */
+  #fb-login-btn{display:none!important}
+  .settings-btn{display:none}
+  /* destra: nascondi nav-tabs (vanno nella tab bar sotto) */
+  header>div:last-child{display:flex;align-items:center;gap:5px;flex-shrink:0}
   .nav-tabs{display:none}
-  /* cloud button: solo icona + testo breve */
-  #fb-login-btn{font-size:11px;padding:6px 8px;flex-shrink:0;display:flex!important;gap:4px}
-  #fb-login-btn svg{width:12px;height:12px}
-  /* settings */
-  .settings-btn{padding:7px;flex-shrink:0}
-  /* carrello: solo icona + numero */
-  .cart-btn{padding:7px 10px;gap:0;flex-shrink:0}
+  /* mostra solo carrello a destra */
+  .cart-btn{padding:7px 11px;gap:4px;flex-shrink:0}
   .cart-btn-label{display:none}
   .cart-fab{display:none}
-  /* TAB BAR mobile (sostituisce nav-tabs) */
+  /* cloud e settings si spostano nella tab bar */
   .mobile-tab-bar{display:flex}
+  /* TAB BAR mobile: Listino | Clienti | ☁ Cloud | ⚙ Settings */
   /* filtri: 2 per riga */
   .filters-grid{grid-template-columns:1fr 1fr;gap:6px}
   .search-row{grid-column:1/-1}
@@ -682,16 +681,27 @@ window.FIREBASE_CONFIG = {
   <span class="cart-fab-count" id="cart-fab-count">0</span>
 </button>
 <header>
-  <div class="logo">
-    <div id="logo-img-wrap" style="flex-shrink:0;width:42px;height:42px;display:flex;align-items:center;justify-content:center">
-      <img id="logo-img" src="" alt="" style="display:none;width:42px;height:42px;object-fit:contain;border-radius:4px">
-      <div id="logo-placeholder" style="width:42px;height:42px;background:rgba(255,255,255,.12);border:1.5px dashed rgba(255,255,255,.25);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px" onclick="document.getElementById('logo-file-inp').click()" title="Carica logo">&#128444;</div>
+  <!-- SINISTRA: logo + cloud + impostazioni -->
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="logo" style="margin:0">
+      <div id="logo-img-wrap" style="flex-shrink:0;width:42px;height:42px;display:flex;align-items:center;justify-content:center">
+        <img id="logo-img" src="" alt="" style="display:none;width:42px;height:42px;object-fit:contain;border-radius:4px">
+        <div id="logo-placeholder" style="width:42px;height:42px;background:rgba(255,255,255,.12);border:1.5px dashed rgba(255,255,255,.25);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px" onclick="document.getElementById('logo-file-inp').click()" title="Carica logo">&#128444;</div>
+      </div>
+      <div>
+        <div class="logo-text">Cavallino Ceramica</div>
+        <div class="logo-sub">Listino 2025</div>
+      </div>
     </div>
-    <div>
-      <div class="logo-text">Cavallino Ceramica</div>
-      <div class="logo-sub">Listino 2025</div>
-    </div>
+    <button id="fb-login-btn" onclick="fbToggleLogin()" title="Sincronizzazione cloud" style="background:none;border:1.5px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+      <span id="fb-status-txt">Accedi</span>
+    </button>
+    <button class="settings-btn" onclick="openSettings()" title="Impostazioni">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
   </div>
+  <!-- DESTRA: nav + carrello -->
   <div style="display:flex;align-items:center;gap:8px">
     <nav class="nav-tabs">
       <button class="nav-tab active" id="tab-listino" onclick="showPage('listino')">
@@ -705,13 +715,6 @@ window.FIREBASE_CONFIG = {
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
       <span class="cart-btn-label">Carrello </span><span class="cart-count" id="cart-count">0</span>
     </button>
-    <button id="fb-login-btn" onclick="fbToggleLogin()" title="Sincronizzazione cloud" style="background:none;border:1.5px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
-      <span id="fb-status-txt">Accedi</span>
-    </button>
-    <button class="settings-btn" onclick="openSettings()" title="Impostazioni">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-    </button>
   </div>
 </header>
 <nav class="mobile-tab-bar" id="mobile-tab-bar">
@@ -722,6 +725,14 @@ window.FIREBASE_CONFIG = {
   <button id="mtab-storico" onclick="showPage('storico')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
     Clienti
+  </button>
+  <button id="mtab-cloud" onclick="fbToggleLogin()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+    <span id="mtab-cloud-txt">Accedi</span>
+  </button>
+  <button onclick="openSettings()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Imposta
   </button>
 </nav>
 
@@ -1282,10 +1293,14 @@ function _fbSetStatus(s){
   }
   if(txt) txt.textContent = label;
   if(btn){
-    btn.style.display = ''; // sempre visibile (anche su mobile quando loggato)
     btn.style.borderColor = s==='saved' ? 'rgba(110,231,160,.6)' : 'rgba(255,255,255,.3)';
     btn.style.color = s==='saved' ? '#6EE7A0' : '#fff';
   }
+  // aggiorna tab bar mobile
+  var mtxt=document.getElementById('mtab-cloud-txt');
+  if(mtxt) mtxt.textContent = s==='saved'&&window.fbUser ? (window.fbUser.displayName||'').split(' ')[0]||'Sync' : 'Accedi';
+  var mtab=document.getElementById('mtab-cloud');
+  if(mtab) mtab.style.color = s==='saved' ? '#6EE7A0' : '';
   // Aggiorna anche il pannello impostazioni
   _fbUpdateSettingsUI();
 }
