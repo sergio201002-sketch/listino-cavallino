@@ -2462,7 +2462,7 @@ function _listinoRender(){
       h+='<tr class="le-group"><td colspan="7">'+r.g+'</td></tr>'; return;
     }
     var isNew = !!r._new;
-    h+='<tr class="le-row'+(isNew?' le-new':')+'">';
+    h+='<tr class="le-row'+(isNew?' le-new':'')+'">';
     h+='<td class="le-cell"><input class="le-inp le-fmt" value="'+x(r.f||'')+'" oninput="_leSet('+i+',\'f\',this.value)" placeholder="es. 60x120"></td>';
     h+='<td class="le-cell"><input class="le-inp le-fi" value="'+x(r.fi||'')+'" oninput="_leSet('+i+',\'fi\',this.value)" placeholder="—"></td>';
     for(var j=0;j<4;j++){
