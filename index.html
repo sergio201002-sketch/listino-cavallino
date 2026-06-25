@@ -313,7 +313,7 @@ header{background:#111;padding:0 16px;height:54px;display:flex;align-items:cente
 .ci-expand-btn .ci-expand-arrow{display:inline-block;transition:transform .18s;font-style:normal}
 .ci-expand-btn.open .ci-expand-arrow{transform:rotate(180deg)}
 .ci-expand-panel{display:none;padding:8px 8px 10px;background:#FAFAF8;border-top:1px solid #EDECEA}
-.ci-tier-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.ci-tier-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
 .ci-tier-cell{border:1px solid #E4E2DC;border-radius:6px;padding:5px 4px 4px;background:#fff;cursor:pointer;text-align:center;transition:border-color .12s,box-shadow .12s;position:relative;overflow:hidden}
 .ci-tier-cell:hover{border-color:#1A6EFF}
 .ci-tier-cell.active{border-color:#1A6EFF;box-shadow:0 0 0 2px rgba(26,110,255,.15);background:#F0F5FF}
@@ -325,6 +325,22 @@ header{background:#111;padding:0 16px;height:54px;display:flex;align-items:cente
 .ci-tier-input{width:100%;border:none;outline:none;background:transparent;font-size:13px;font-weight:800;color:#111;text-align:center;-moz-appearance:textfield;padding:0}
 .ci-tier-input::-webkit-outer-spin-button,.ci-tier-input::-webkit-inner-spin-button{-webkit-appearance:none}
 .ci-tier-input::placeholder{font-size:10px;color:#ccc;font-weight:400}
+/* Editor listino condizioni */
+.le-table{width:100%;border-collapse:collapse;font-size:11px;min-width:480px}
+.le-table th{background:#111;color:#fff;padding:6px 8px;text-align:left;font-weight:700;white-space:nowrap;font-size:10px}
+.le-table th.le-num{text-align:right}
+.le-table tr.le-group td{background:#F4F3EF;font-weight:800;font-size:11px;color:#111;padding:7px 8px;border-top:2px solid #E4E2DC}
+.le-table tr.le-row{border-bottom:1px solid #EDECEA}
+.le-table tr.le-row:hover{background:#FAFAF8}
+.le-table tr.le-new{background:#FFF8E6}
+.le-cell{padding:4px 6px;vertical-align:middle}
+.le-inp{width:100%;border:1px solid #E4E2DC;border-radius:4px;padding:3px 6px;font-size:11px;font-weight:700;text-align:right;-moz-appearance:textfield;background:#fff;min-width:54px}
+.le-inp::-webkit-outer-spin-button,.le-inp::-webkit-inner-spin-button{-webkit-appearance:none}
+.le-inp:focus{outline:none;border-color:#003399;background:#F0F5FF}
+.le-inp.le-fmt{text-align:left;font-weight:600;min-width:90px}
+.le-inp.le-fi{text-align:left;font-weight:600;min-width:70px}
+.le-del-btn{background:none;border:none;color:#ccc;font-size:14px;cursor:pointer;padding:2px 4px;line-height:1}
+.le-del-btn:hover{color:#c0392b}
 /* Fascia globale tutti i prodotti */
 .cp-tier-btn{width:30px;height:30px;border:1px solid #D5D2CA;background:#fff;border-radius:6px;font-size:8px;font-weight:800;color:#888;cursor:pointer;transition:all .12s;padding:0;line-height:1}
 .cp-tier-btn:hover{border-color:#003399;color:#003399;background:#F0F5FF}
@@ -692,6 +708,8 @@ header{background:#111;padding:0 16px;height:54px;display:flex;align-items:cente
   .price-val{font-size:14px}
   .mq-inp{font-size:14px}
   .tag{font-size:8px;padding:1px 5px}
+  .card-cond-val{font-size:12px}
+  .card-cond-lbl{font-size:6px}
 }
 
 @media(max-width:480px){
@@ -705,6 +723,10 @@ header{background:#111;padding:0 16px;height:54px;display:flex;align-items:cente
   .cp-items{padding:8px}
   .ci-top{padding:6px 8px 5px}
   .ci-main{padding:4px 8px;gap:4px}
+  /* condizioni card su mobile */
+  .card-cond-val{font-size:10px}
+  .card-cond-lbl{font-size:5.5px;letter-spacing:.01em}
+  .card-cond-cell{padding:3px 1px}
   /* modal e settings a piena larghezza */
   .modal-box{padding:16px;border-radius:10px}
   .sett-box{border-radius:10px;max-height:95vh}
@@ -937,11 +959,10 @@ window.FIREBASE_CONFIG = {
       <div style="display:flex;flex-direction:column;gap:3px;justify-content:center;flex-shrink:0">
         <div style="font-size:7px;font-weight:700;color:#aaa;letter-spacing:.06em;text-transform:uppercase">Fascia tutti</div>
         <div style="display:flex;gap:3px" id="cp-tier-btns">
-          <button type="button" class="cp-tier-btn" id="cp-tier-0" onclick="applyGlobalTier(0)" title="&lt;1 bancale">&#60;1</button>
-          <button type="button" class="cp-tier-btn" id="cp-tier-1" onclick="applyGlobalTier(1)" title="1 bancale">1</button>
-          <button type="button" class="cp-tier-btn" id="cp-tier-2" onclick="applyGlobalTier(2)" title="2-3 bancali">2-3</button>
-          <button type="button" class="cp-tier-btn" id="cp-tier-3" onclick="applyGlobalTier(3)" title="4-17 bancali">4-17</button>
-          <button type="button" class="cp-tier-btn" id="cp-tier-4" onclick="applyGlobalTier(4)" title="18+ bancali">18+</button>
+          <button type="button" class="cp-tier-btn" id="cp-tier-0" onclick="applyGlobalTier(0)" title="&lt;1 paletta">&#60;1</button>
+          <button type="button" class="cp-tier-btn" id="cp-tier-1" onclick="applyGlobalTier(1)" title="1-4 palette">1→4</button>
+          <button type="button" class="cp-tier-btn" id="cp-tier-2" onclick="applyGlobalTier(2)" title="4-18 palette">4→18</button>
+          <button type="button" class="cp-tier-btn" id="cp-tier-3" onclick="applyGlobalTier(3)" title="18+ palette">18+</button>
         </div>
       </div>
       <div class="cp-collapse" id="cp-rec-collapse" style="flex:1;min-width:0">
@@ -1014,12 +1035,10 @@ window.FIREBASE_CONFIG = {
           <tr style="background:#111;color:#fff">
             <th style="padding:7px 10px;text-align:left;white-space:nowrap">Formato</th>
             <th style="padding:7px 10px;text-align:left">Finitura</th>
-            <th style="padding:7px 8px;text-align:right;white-space:nowrap">Listino</th>
-            <th style="padding:7px 8px;text-align:right;white-space:nowrap">&lt; Bancale</th>
-            <th style="padding:7px 8px;text-align:right;white-space:nowrap">&gt; Bancale</th>
-            <th style="padding:7px 8px;text-align:right;white-space:nowrap">2-3 Bancali misti</th>
-            <th style="padding:7px 8px;text-align:right;white-space:nowrap">4-17 Bancali misti</th>
-            <th style="padding:7px 8px;text-align:right;white-space:nowrap">18+ Bancali misti</th>
+            <th style="padding:7px 8px;text-align:right;white-space:nowrap">&lt; 1 Paletta</th>
+            <th style="padding:7px 8px;text-align:right;white-space:nowrap">1→4 Palette</th>
+            <th style="padding:7px 8px;text-align:right;white-space:nowrap">4→18 Palette</th>
+            <th style="padding:7px 8px;text-align:right;white-space:nowrap">18+ Palette</th>
           </tr>
         </thead>
         <tbody id="cond-body">
@@ -1153,6 +1172,7 @@ window.FIREBASE_CONFIG = {
       <button class="sett-tab" onclick="settTab(this,'sett-logo')">&#128444; Logo</button>
       <button class="sett-tab" onclick="settTab(this,'sett-dest')">&#128100; Destinatari</button>
       <button class="sett-tab" onclick="settTab(this,'sett-cloud')">&#9729; Cloud</button>
+      <button class="sett-tab" onclick="settTab(this,'sett-listino')">&#128200; Listino</button>
     </div>
     <div class="sett-body">
       <!-- TAB: Prodotti -->
@@ -1250,6 +1270,18 @@ window.FIREBASE_CONFIG = {
           <button onclick="fbToggleLogin()" id="sett-fb-login-btn" style="background:#fff;color:#c0392b;border:1.5px solid #c0392b;border-radius:8px;padding:11px 16px;font-size:13px;font-weight:700;cursor:pointer">
             Accedi con Google
           </button>
+        </div>
+      </div>
+      <!-- TAB: Listino condizioni -->
+      <div id="sett-listino" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap">
+          <p style="font-size:12px;color:#888;margin:0;line-height:1.5">Visualizza e modifica i prezzi netti del listino condizioni. Le modifiche restano nel browser finché non le confermi.</p>
+          <button onclick="_listinoAddRow()" style="background:#111;color:#fff;border:none;border-radius:7px;padding:6px 13px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">+ Aggiungi riga</button>
+        </div>
+        <div id="sett-listino-table" style="overflow-x:auto"></div>
+        <div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end">
+          <button onclick="_listinoReset()" style="background:none;color:#888;border:1px solid #D5D2CA;border-radius:7px;padding:7px 14px;font-size:11px;font-weight:600;cursor:pointer">Ripristina originale</button>
+          <button onclick="_listinoSave()" style="background:#003399;color:#fff;border:none;border-radius:7px;padding:7px 16px;font-size:11px;font-weight:700;cursor:pointer">Salva modifiche</button>
         </div>
       </div>
       <!-- TAB: Logo -->
@@ -1980,8 +2012,9 @@ function _condRow(p){
       fiMatch = (pf==='INDOOR'||pf===''||pf==='FONDO'||pf==='OUTDOOR');
     } else if(rfi==='OUTDOOR'){
       fiMatch = (pf==='OUTDOOR');
-    } else if(rfi==='MILLERIGHE/RELIEVO'){
-      fiMatch = (pt==='DECORO MILLERIGHE'||pt==='DECORO RILIEVO');
+    } else if(rfi==='MILLERIGHE/RELIEVO'||rfi==='MONOCHROME/MILLERIGHE/RELIEVO'){
+      var pc=(p.c||'').toUpperCase();
+      fiMatch = (pt==='DECORO MILLERIGHE'||pt==='DECORO RILIEVO'||pc.indexOf('MONO')===0);
     } else if(rfi==='UNIVERSAL'){
       fiMatch = (ps==='UNIVERSAL');
     } else if(rfi.indexOf('/')>=0||rfi.indexOf(',')>=0){
@@ -1991,7 +2024,7 @@ function _condRow(p){
       fiMatch = (pf===rfi||pt.indexOf(rfi)>=0||ps.indexOf(rfi)>=0);
     }
     if(!fiMatch) continue;
-    var score = (rfi!==''?2:0);
+    var score = (rfi!==''?2:0) + (fmts.length===1?1:0);
     if(score > bestScore){ best=r; bestScore=score; }
   }
   return best;
@@ -1999,7 +2032,7 @@ function _condRow(p){
 function _cardCondizioniHtml(p){
   var row=_condRow(p);
   if(!row) return '';
-  var labels=['<1 banc.','1 banc.','2-3','4-17','18+'];
+  var labels=['<1 pal.','1→4','4→18','18+'];
   var h='<div class="card-cond-row">';
   for(var j=0;j<row.v.length;j++){
     h+='<div class="card-cond-cell"><div class="card-cond-lbl">'+labels[j]+'</div><div class="card-cond-val">€ '+parseFloat(row.v[j]).toFixed(2).replace('.',',')+'</div></div>';
@@ -2294,13 +2327,12 @@ function _totBancaliCart(){
   return cart.reduce(function(s,i){ return s+(i.m&&i.mq?(parseFloat(i.mq)/i.m):0); },0);
 }
 function _condTierIdx(totBanc){
-  if(totBanc<1)  return 0;
-  if(totBanc<2)  return 1;
-  if(totBanc<4)  return 2;
-  if(totBanc<18) return 3;
-  return 4;
+  if(totBanc<1)   return 0;
+  if(totBanc<=4)  return 1;
+  if(totBanc<=18) return 2;
+  return 3;
 }
-var _condTierNames=['< 1 bancale','1 bancale','2–3 bancali misti','4–17 bancali misti','18+ bancali misti'];
+var _condTierNames=['< 1 paletta','1–4 palette miste','4–18 palette miste','oltre 18 palette miste'];
 function _getNetPrice(item, tierIdx){
   var r=_condRow(item); return r ? r.v[tierIdx] : null;
 }
@@ -2317,7 +2349,7 @@ function _updateCondizioniBar(){
   // Evidenzia pulsante fascia globale in base ai bancali totali (solo se nessun manuale attivo)
   var allManual=cart.every(function(i){ return i.priceManual; });
   if(!allManual){
-    for(var t=0;t<5;t++){var b=document.getElementById('cp-tier-'+t); if(b) b.classList.toggle('active',t===tierIdx);}
+    for(var t=0;t<4;t++){var b=document.getElementById('cp-tier-'+t); if(b) b.classList.toggle('active',t===tierIdx);}
   }
   var isGreen=tierIdx>=2;
   bar.innerHTML='<div class="cp-cond-bar'+(isGreen?' tier-ok':'')+'">'
@@ -2343,7 +2375,7 @@ function _autoApplyCondizioni(){
 }
 
 function _ciExpandHtml(item){
-  var tierLabels=['<1 banc.','1 banc.','2-3','4-17','18+'];
+  var tierLabels=['<1 pal.','1→4','4→18','18+'];
   var totBanc=_totBancaliCart();
   var activeTier=_condTierIdx(totBanc);
   var row=_condRow(item);
@@ -2394,7 +2426,7 @@ function ciSetTier(id,tierIdx){
 
 function applyGlobalTier(tierIdx){
   // Aggiorna stile pulsanti
-  for(var i=0;i<5;i++){
+  for(var i=0;i<4;i++){
     var b=document.getElementById('cp-tier-'+i);
     if(b) b.classList.toggle('active',i===tierIdx);
   }
@@ -2409,6 +2441,83 @@ function applyGlobalTier(tierIdx){
   lsSave();
   updateCartUI();
 }
+
+/* ===== EDITOR LISTINO CONDIZIONI ===== */
+var _listinoEdit = null; // copia di lavoro
+
+function _listinoGetData(){
+  if(!_listinoEdit) _listinoEdit = JSON.parse(JSON.stringify(_CONDIZIONI));
+  return _listinoEdit;
+}
+
+function _listinoRender(){
+  var data = _listinoGetData();
+  var tierHdrs = ['<1 pal.','1→4','4→18','18+'];
+  var h = '<table class="le-table"><thead><tr>'
+    +'<th>Formato</th><th>Finitura</th>'
+    +tierHdrs.map(function(l){return '<th class="le-num">'+l+'</th>';}).join('')
+    +'<th></th></tr></thead><tbody>';
+  data.forEach(function(r,i){
+    if(r.g){
+      h+='<tr class="le-group"><td colspan="7">'+r.g+'</td></tr>'; return;
+    }
+    var isNew = !!r._new;
+    h+='<tr class="le-row'+(isNew?' le-new':')+'">';
+    h+='<td class="le-cell"><input class="le-inp le-fmt" value="'+x(r.f||'')+'" oninput="_leSet('+i+',\'f\',this.value)" placeholder="es. 60x120"></td>';
+    h+='<td class="le-cell"><input class="le-inp le-fi" value="'+x(r.fi||'')+'" oninput="_leSet('+i+',\'fi\',this.value)" placeholder="—"></td>';
+    for(var j=0;j<4;j++){
+      var v=r.v&&r.v[j]!=null?r.v[j]:'';
+      h+='<td class="le-cell"><input type="number" class="le-inp" step="0.01" min="0" value="'+v+'" oninput="_leSetV('+i+','+j+',this.value)" placeholder="0.00"></td>';
+    }
+    h+='<td class="le-cell"><button class="le-del-btn" onclick="_leDel('+i+')" title="Elimina">&#10005;</button></td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  var el=document.getElementById('sett-listino-table');
+  if(el) el.innerHTML=h;
+}
+
+function _leSet(i,key,val){ _listinoGetData()[i][key]=val; }
+function _leSetV(i,j,val){ var d=_listinoGetData(); if(!d[i].v) d[i].v=[null,null,null,null]; d[i].v[j]=val===''?null:parseFloat(val)||0; }
+function _leDel(i){ var d=_listinoGetData(); d.splice(i,1); _listinoRender(); }
+
+function _listinoAddRow(){
+  var d=_listinoGetData();
+  // Inserisci dopo l'ultimo gruppo non-C20 (prima del gruppo C20)
+  var insertIdx=d.length;
+  for(var i=0;i<d.length;i++){ if(d[i].g&&d[i].g.indexOf('C20')>=0){ insertIdx=i; break; } }
+  d.splice(insertIdx,0,{f:'',fi:'',v:[null,null,null,null],_new:true});
+  _listinoRender();
+  // Scrolla in fondo alla tabella
+  setTimeout(function(){ var el=document.getElementById('sett-listino-table'); if(el) el.scrollTop=el.scrollHeight; },50);
+}
+
+function _listinoSave(){
+  if(!_listinoEdit) return;
+  if(!confirm('Confermi di voler salvare le modifiche al listino condizioni?')) return;
+  if(!confirm('Seconda conferma: le nuove fasce prezzo saranno applicate a tutti i prodotti. Continuare?')) return;
+  // Pulizia: rimuovi righe vuote senza formato, normalizza valori
+  _listinoEdit = _listinoEdit.filter(function(r){
+    if(r.g) return true;
+    return (r.f||'').trim()!=='';
+  });
+  _listinoEdit.forEach(function(r){ delete r._new; });
+  _CONDIZIONI = _listinoEdit;
+  _listinoEdit = null;
+  // Ricalcola prezzi nel carrello
+  cart.forEach(function(i){ i.priceManual=false; });
+  _autoApplyCondizioni();
+  updateCartUI();
+  alert('Listino salvato. I prezzi nel carrello sono stati aggiornati.');
+  _listinoRender();
+}
+
+function _listinoReset(){
+  if(!confirm('Vuoi ripristinare il listino originale? Tutte le modifiche non salvate andranno perse.')) return;
+  _listinoEdit = null;
+  _listinoRender();
+}
+/* ===== FINE EDITOR LISTINO ===== */
 
 function ciSetCustomNet(id,val){
   var item=cart.find(function(c){return c.id===id;}); if(!item) return;
@@ -3760,32 +3869,38 @@ function openModal(id){
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 
 var _CONDIZIONI = [
-  {g:'La Leccese / Saint Michel — 9mm'},
-  {f:'30x30 / 30x60 / 60x60', fi:'',                   v:[15.7,13.7,12.2,11.2,10.2]},
-  {f:'30x30 / 30x60 / 60x60', fi:'OUTDOOR',             v:[16.2,14.2,12.7,11.7,10.7]},
-  {f:'15x30 / 20x40',         fi:'',                   v:[13.1,11.1,8.6,8.6,7.6]},
-  {f:'15x90 / 22x90',         fi:'',                   v:[14.1,12.1,10.6,9.6,8.8]},
-  {f:'15x90',                 fi:'OUTDOOR',             v:[14.6,12.6,11.1,10.1,9.38]},
-  {f:'20x120 / 30x120',       fi:'',                   v:[15.1,13.1,11.6,10.6,9.6]},
-  {f:'20x120',                fi:'OUTDOOR',             v:[15.6,13.6,12.1,11.1,10.1]},
-  {f:'26x160',                fi:'',                   v:[16.7,14.7,13.2,12.2,11.2]},
-  {f:'60x120',                fi:'',                   v:[16.1,14.1,12.6,11.6,10.3]},
-  {f:'60x120',                fi:'OUTDOOR',             v:[16.6,14.6,13.1,12.1,10.65]},
-  {f:'60x120',                fi:'MILLERIGHE/RELIEVO',  v:[19.1,17.1,16.2,16.2,14.26]},
-  {f:'60x120',                fi:'UNIVERSAL',           v:[29.1,27.1,21.65,19,17]},
-  {f:'80x80',                 fi:'',                   v:[15.1,13.1,11.6,10.6,9.6]},
-  {f:'90x90',                 fi:'',                   v:[15.6,13.6,12.1,11.1,9.8]},
-  {f:'90x90',                 fi:'OUTDOOR',             v:[16.1,14.1,12.6,11.6,10.21]},
-  {f:'120x120',               fi:'',                   v:[17.7,15.7,15.34,14.34,12.62]},
+  {g:'La Leccese / Colosseo / Dolomia / Opus Romano'},
+  {f:'30x30 / 30x60 / 60x60', fi:'',                          v:[15.7,12.7,11.7,10.2]},
+  {f:'30x30 / 30x60 / 60x60', fi:'OUTDOOR',                   v:[16.2,13.2,12.2,10.7]},
+  {f:'15x30 / 20x40',         fi:'',                          v:[13.1,8.6,8.0,7.6]},
+  {f:'15x90 / 22x90',         fi:'',                          v:[14.1,10.6,9.8,8.8]},
+  {f:'20x120 / 30x120',       fi:'',                          v:[15.1,11.9,10.6,9.6]},
+  {f:'20x120',                fi:'OUTDOOR',                   v:[15.6,12.4,11.1,10.1]},
+  {f:'26x160',                fi:'',                          v:[16.7,13.7,12.2,11.2]},
+  {f:'30x60',                 fi:'',                          v:[13.1,9.6,8.7,7.7]},
+  {f:'30x60',                 fi:'OUTDOOR',                   v:[13.6,9.9,9.0,8.0]},
+  {f:'60x60',                 fi:'',                          v:[13.6,10.5,9.1,8.1]},
+  {f:'60x60',                 fi:'OUTDOOR',                   v:[14.8,10.8,9.6,8.4]},
+  {f:'60x120',                fi:'',                          v:[16.1,12.6,11.6,10.3]},
+  {f:'60x120',                fi:'MONOCHROME/MILLERIGHE/RELIEVO', v:[19.1,14.6,13.6,12.3]},
+  {f:'60x120',                fi:'OUTDOOR',                   v:[16.6,13.1,12.1,10.8]},
+  {f:'60x120',                fi:'UNIVERSAL',                 v:[29.1,21.65,19.0,17.0]},
+  {f:'80x80',                 fi:'',                          v:[15.1,11.6,10.6,9.6]},
+  {f:'80x160',                fi:'',                          v:[19.7,15.7,14.3,12.6]},
+  {f:'90x90',                 fi:'',                          v:[15.6,12.6,11.6,10.3]},
+  {f:'90x90',                 fi:'OUTDOOR',                   v:[16.1,13.1,12.1,10.8]},
+  {f:'120x120',               fi:'',                          v:[17.7,15.7,14.3,12.6]},
+  {f:'120x120',               fi:'OUTDOOR',                   v:[18.8,16.2,14.8,13.1]},
   {g:'C20 (2 cm)'},
-  {f:'60x60',                 fi:'',                   v:[23.3,20.3,18.8,17.8,16]},
-  {f:'60x60',                 fi:'Fruhling/Intreccio',  v:[24.7,21.7,20.2,19.2,16.5]},
-  {f:'60x90',                 fi:'',                   v:[24.7,21.7,20.2,19.2,16.5]},
-  {f:'90x90',                 fi:'',                   v:[25.7,22.7,21.2,20.2,18.5]},
-  {f:'30x120',                fi:'',                   v:[24.7,21.7,20.2,19.2,17]},
-  {f:'40x120',                fi:'',                   v:[24.7,21.7,20.2,19.2,17]},
-  {f:'60x120',                fi:'',                   v:[26.7,23.7,22.2,21.2,18.5]},
-  {f:'120x120',               fi:'',                   v:[28.1,25.1,23.6,22.6,20.5]},
+  {f:'60x60',   fi:'',                   v:[23.3,20.3,17.8,16.0]},
+  {f:'60x60',   fi:'Fruhling/Intreccio', v:[24.7,21.7,19.2,16.5]},
+  {f:'60x90',   fi:'',                   v:[24.7,21.7,19.2,16.5]},
+  {f:'90x90',   fi:'',                   v:[25.7,23.7,21.2,18.5]},
+  {f:'90x90',   fi:'Intreccio',          v:[26.7,25.1,22.6,19.9]},
+  {f:'30x120',  fi:'',                   v:[24.7,21.7,19.2,17.0]},
+  {f:'40x120',  fi:'',                   v:[24.7,21.7,19.2,17.0]},
+  {f:'60x120',  fi:'',                   v:[26.7,23.7,21.2,18.5]},
+  {f:'120x120', fi:'',                   v:[28.1,25.1,22.6,20.5]},
 ];
 function _buildCondizioniTable(){
   var tb=document.getElementById('cond-body'); if(!tb) return;
@@ -3802,12 +3917,10 @@ function _buildCondizioniTable(){
     rows+='<tr style="background:'+bg+'">'
       +'<td style="padding:6px 10px;font-weight:700;white-space:nowrap">'+r.f+'</td>'
       +'<td style="padding:6px 10px;color:#666">'+r.fi+'</td>'
-      +'<td style="padding:6px 8px;text-align:right;color:#888">'+fmt(r.p)+'</td>'
       +'<td style="padding:6px 8px;text-align:right;font-weight:700;color:#111">'+fmt(r.v[0])+'</td>'
-      +'<td style="padding:6px 8px;text-align:right;font-weight:700;color:#111">'+fmt(r.v[1])+'</td>'
+      +'<td style="padding:6px 8px;text-align:right;font-weight:700;color:#1A6EFF">'+fmt(r.v[1])+'</td>'
       +'<td style="padding:6px 8px;text-align:right;font-weight:700;color:#1A6EFF">'+fmt(r.v[2])+'</td>'
-      +'<td style="padding:6px 8px;text-align:right;font-weight:700;color:#1A6EFF">'+fmt(r.v[3])+'</td>'
-      +'<td style="padding:6px 8px;text-align:right;font-weight:700;color:#1a7a3c">'+fmt(r.v[4])+'</td>'
+      +'<td style="padding:6px 8px;text-align:right;font-weight:700;color:#1a7a3c">'+fmt(r.v[3])+'</td>'
       +'</tr>';
   });
   tb.innerHTML=rows;
@@ -4047,6 +4160,7 @@ function settTab(btn, paneId){
   var pe = document.getElementById(paneId); if(pe) pe.style.display='';
   if(paneId==='sett-dest') _destRenderSettings();
   if(paneId==='sett-cloud') _fbUpdateSettingsUI();
+  if(paneId==='sett-listino') _listinoRender();
   if(paneId==='sett-prods'){ prodRenderList(); prodFillDataLists(); }
 }
 
