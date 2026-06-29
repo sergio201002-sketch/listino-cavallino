@@ -1412,7 +1412,7 @@ _customProds.forEach(function(cp){
 });
 
 // STATE
-var _BUILD_TS = '1782729394';
+var _BUILD_TS = '1782742395';
 if(lsGet('cc_build_ts')!==_BUILD_TS){ try{localStorage.removeItem('cc_cart');}catch(e){} try{localStorage.setItem('cc_build_ts',_BUILD_TS);}catch(e){} }
 var cart = lsGet('cc_cart') || [];
 var clients = lsGet('cc_clients') || [];
@@ -2039,7 +2039,7 @@ function _cardCondizioniHtml(p){
   var labels=['<1 pal.','1→4','4→18','18+'];
   var h='<div class="card-cond-row">';
   for(var j=0;j<row.v.length;j++){
-    h+='<div class="card-cond-cell"><div class="card-cond-lbl">'+labels[j]+'</div><div class="card-cond-val">€ '+parseFloat(row.v[j]).toFixed(2).replace('.',',')+'</div></div>';
+    h+='<div class="card-cond-cell"><div class="card-cond-lbl">'+labels[j]+'</div><div class="card-cond-val">€ '+parseFloat(_condPrice(row,j)).toFixed(2).replace('.',',')+'</div></div>';
   }
   h+='</div>';
   return h;
@@ -2370,8 +2370,13 @@ function _condTierIdx(totBanc){
   return 3;
 }
 var _condTierNames=['< 1 paletta','1–4 palette miste','4–18 palette miste','oltre 18 palette miste'];
+function _condPrice(row, tierIdx){
+  if(tierIdx===0) return Math.round((row.v[1]+2)*100)/100;
+  return row.v[tierIdx];
+}
 function _getNetPrice(item, tierIdx){
-  var r=_condRow(item); return r ? r.v[tierIdx] : null;
+  var r=_condRow(item); if(!r) return null;
+  return _condPrice(r, tierIdx);
 }
 function _updateCondizioniBar(){
   var bar=document.getElementById('cp-cond-bar'); if(!bar) return;
@@ -2425,7 +2430,7 @@ function _ciExpandHtml(item){
       var isAct=(!isManual&&i===activeTier)||(isManual&&item.manualTier===i);
       tierCells+='<div class="ci-tier-cell'+(isAct?' active':'')+'" onclick="ciSetTier(\''+item.id+'\','+i+')">'
         +'<div class="ci-tier-lbl">'+tierLabels[i]+'</div>'
-        +'<div class="ci-tier-val">'+parseFloat(row.v[i]).toFixed(2).replace('.',',')+'</div>'
+        +'<div class="ci-tier-val">'+parseFloat(_condPrice(row,i)).toFixed(2).replace('.',',')+'</div>'
         +'</div>';
     }
   }
@@ -2456,7 +2461,7 @@ function ciSetTier(id,tierIdx){
   var row=_condRow(item); if(!row) return;
   item.priceManual=true;
   item.manualTier=tierIdx;
-  item.discount={type:'custom',customPrice:row.v[tierIdx],std:[]};
+  item.discount={type:'custom',customPrice:_condPrice(row,tierIdx),std:[]};
   lsSave();
   updateCartUI();
 }
@@ -2473,7 +2478,7 @@ function applyGlobalTier(tierIdx){
     if(!row) return;
     item.priceManual=true;
     item.manualTier=tierIdx;
-    item.discount={type:'custom',customPrice:row.v[tierIdx],std:[]};
+    item.discount={type:'custom',customPrice:_condPrice(row,tierIdx),std:[]};
   });
   lsSave();
   updateCartUI();
