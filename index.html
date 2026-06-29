@@ -186,9 +186,9 @@ header{background:#111;padding:0 16px;height:54px;display:flex;align-items:cente
 .price-unit{font-size:10px;color:#ccc}
 .price-mq{font-size:10px;color:#222;margin-left:auto;font-weight:700}
 .card-ctrl{display:flex;flex-direction:column;gap:6px;padding:10px 10px;border-left:1px solid #E4E2DC;background:#F4F3EF;justify-content:center}
-.mq-wrap{display:flex;align-items:center;border:1.5px solid #E4E2DC;border-radius:7px;overflow:hidden;background:#fff}
+.mq-wrap{display:flex;align-items:center;border:1.5px solid #E4E2DC;border-radius:7px;overflow:visible;background:#fff;min-width:0}
 .mq-lbl{background:#ECEAE4;padding:0 6px;font-size:8px;font-weight:700;color:#aaa;letter-spacing:.1em;border-right:1px solid #E4E2DC;align-self:stretch;display:flex;align-items:center}
-.mq-inp{flex:1;border:none;background:#fff;padding:7px 5px;font-size:14px;font-weight:700;text-align:center;width:52px;-webkit-appearance:none;-moz-appearance:textfield;outline:none;color:#111 !important;-webkit-text-fill-color:#111 !important;opacity:1}
+.mq-inp{flex:1;border:none;background:#fff;padding:7px 4px;font-size:14px;font-weight:700;text-align:center;width:44px;min-width:0;-webkit-appearance:none;-moz-appearance:textfield;outline:none;color:#111;-webkit-text-fill-color:#111;opacity:1}
 .mq-inp::-webkit-outer-spin-button,.mq-inp::-webkit-inner-spin-button{-webkit-appearance:none}
 .mq-pm-btn{width:26px;height:26px;border:1.5px solid #E4E2DC;border-radius:6px;background:#fff;font-size:15px;font-weight:700;color:#555;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;padding:0}
 .mq-pm-btn:hover{background:#111;color:#fff;border-color:#111}
@@ -1412,6 +1412,8 @@ _customProds.forEach(function(cp){
 });
 
 // STATE
+var _BUILD_TS = '1782729084';
+if(lsGet('cc_build_ts')!==_BUILD_TS){ try{localStorage.removeItem('cc_cart');}catch(e){} try{localStorage.setItem('cc_build_ts',_BUILD_TS);}catch(e){} }
 var cart = lsGet('cc_cart') || [];
 var clients = lsGet('cc_clients') || [];
 var orders = lsGet('cc_orders') || [];
@@ -2104,9 +2106,9 @@ function makeCard(p){
   h += '<div class="card-ctrl">';
   if(_bancaleMode && p.m){
     var bancali2 = inc ? Math.round((inc.mq / p.m)*10)/10 : 0;
-    h += '<div style="display:flex;align-items:center;gap:3px">'
+    h += '<div style="display:flex;align-items:center;justify-content:center;gap:4px;width:100%">'
       +'<button class="mq-pm-btn" onclick="_cardBancStep(\''+p.id+'\',\''+sid+'\',-1)" tabindex="-1">&#8722;</button>'
-      +'<div class="mq-wrap" style="flex:1"><div class="mq-lbl">Banc.</div><input type="number" class="mq-inp" id="'+sid+'" value="'+bancali2+'" min="0" step="1" style="color:#111;-webkit-text-fill-color:#111"></div>'
+      +'<input type="number" class="mq-inp" id="'+sid+'" value="'+(bancali2||'')+'" min="0" step="1" placeholder="0" style="color:#111;-webkit-text-fill-color:#111;border:1.5px solid #E4E2DC;border-radius:7px;background:#fff;width:44px;flex:none;padding:6px 2px">'
       +'<button class="mq-pm-btn" onclick="_cardBancStep(\''+p.id+'\',\''+sid+'\',1)" tabindex="-1">+</button>'
       +'</div>';
   } else {
@@ -2181,9 +2183,22 @@ function refreshCard(pid){
 }
 
 function clearCart(){
-  if(!confirm('Svuotare il carrello?')) return; // confirm OK qui: è desktop only
-  cart=[]; lsSave(); updateBadge(); updateCartUI();
-  filtered.forEach(function(p){ refreshCard(p.id); });
+  var existing=document.getElementById('clear-cart-confirm');
+  if(existing){
+    existing.remove();
+    cart=[]; lsSave(); updateBadge(); updateCartUI();
+    filtered.forEach(function(p){ refreshCard(p.id); });
+    return;
+  }
+  var bar=document.createElement('div');
+  bar.id='clear-cart-confirm';
+  bar.style.cssText='background:#fff0f0;border:1px solid #fcc;border-radius:8px;padding:8px 12px;margin:6px 0;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;color:#c0392b;flex-wrap:wrap';
+  bar.innerHTML='Svuotare il carrello?'
+    +'<button onclick="clearCart()" style="background:#c0392b;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;margin-left:auto;touch-action:manipulation">Conferma</button>'
+    +'<button onclick="document.getElementById(\'clear-cart-confirm\').remove()" style="background:none;border:1px solid #ccc;border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer;touch-action:manipulation">Annulla</button>';
+  var actions=document.querySelector('.cp-actions');
+  if(actions) actions.insertAdjacentElement('beforebegin', bar);
+  setTimeout(function(){ if(bar.parentNode) bar.remove(); },4000);
 }
 
 function updateBadge(){
