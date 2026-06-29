@@ -173,7 +173,7 @@ header{background:#111;padding:0 16px;height:54px;display:flex;align-items:cente
 .card-price-row{display:flex;align-items:center;gap:6px;background:#F4F3EF;border:1px solid #E4E2DC;border-radius:6px;padding:5px 10px;margin-top:2px}
 .price-lbl{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#aaa}
 .price-val{font-size:14px;font-weight:800;color:#003399}
-.price-mq{font-size:10px;color:#bbb;margin-left:auto}
+.price-mq{font-size:10px;color:#222;margin-left:auto;font-weight:700}
 .card-price-row.has-cond{border-radius:6px 6px 0 0;padding:3px 10px}
 .card-price-row.has-cond .price-val{font-size:9px;font-weight:500;color:#bbb}
 .card-price-row.has-cond .price-lbl{font-size:6px;color:#ccc}
@@ -184,12 +184,14 @@ header{background:#111;padding:0 16px;height:54px;display:flex;align-items:cente
 .card-cond-lbl{font-size:7px;font-weight:700;color:#888;letter-spacing:.04em;text-transform:uppercase}
 .card-cond-val{font-size:15px;font-weight:800;color:#003399}
 .price-unit{font-size:10px;color:#ccc}
-.price-mq{font-size:10px;color:#bbb;margin-left:auto}
+.price-mq{font-size:10px;color:#222;margin-left:auto;font-weight:700}
 .card-ctrl{display:flex;flex-direction:column;gap:6px;padding:10px 10px;border-left:1px solid #E4E2DC;background:#F4F3EF;justify-content:center}
 .mq-wrap{display:flex;align-items:center;border:1.5px solid #E4E2DC;border-radius:7px;overflow:hidden;background:#fff}
 .mq-lbl{background:#ECEAE4;padding:0 6px;font-size:8px;font-weight:700;color:#aaa;letter-spacing:.1em;border-right:1px solid #E4E2DC;align-self:stretch;display:flex;align-items:center}
-.mq-inp{flex:1;border:none;background:transparent;padding:7px 5px;font-size:14px;font-weight:700;text-align:center;width:52px;-webkit-appearance:none;-moz-appearance:textfield;outline:none}
+.mq-inp{flex:1;border:none;background:#fff;padding:7px 5px;font-size:14px;font-weight:700;text-align:center;width:52px;-webkit-appearance:none;-moz-appearance:textfield;outline:none;color:#111 !important;-webkit-text-fill-color:#111 !important;opacity:1}
 .mq-inp::-webkit-outer-spin-button,.mq-inp::-webkit-inner-spin-button{-webkit-appearance:none}
+.mq-pm-btn{width:26px;height:26px;border:1.5px solid #E4E2DC;border-radius:6px;background:#fff;font-size:15px;font-weight:700;color:#555;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;padding:0}
+.mq-pm-btn:hover{background:#111;color:#fff;border-color:#111}
 .btn-add{padding:7px;border-radius:7px;border:1.5px solid #D5D2CA;background:#fff;color:#111;font-size:10px;font-weight:700;letter-spacing:.05em;cursor:pointer;text-align:center;width:100%;transition:all .18s}
 .btn-add:hover{background:#111;border-color:#111;color:#fff}
 .btn-rem{padding:7px;border-radius:7px;border:1.5px solid rgba(184,147,58,.4);background:#EBF2FF;color:#003399;font-size:10px;font-weight:700;cursor:pointer;text-align:center;width:100%;transition:all .18s}
@@ -2041,6 +2043,22 @@ function _cardCondizioniHtml(p){
   return h;
 }
 var _bancaleMode = false;
+function _cardBancStep(pid, sid, delta){
+  var inp = document.getElementById(sid);
+  if(!inp) return;
+  var cur = parseInt(inp.value)||0;
+  var next = Math.max(0, cur + delta);
+  inp.value = next;
+  // Se era 0 e si va a 1+, aggiungi al carrello; se era in carrello aggiorna mq
+  var p = PRODUCTS.find(function(x){return x.id===pid;});
+  if(!p||!p.m) return;
+  if(next===0){ removeCart(pid); return; }
+  var mq = Math.round(next * p.m * 100)/100;
+  var inc = cart.find(function(c){return c.id===pid;});
+  if(inc){ inc.mq=mq; _autoApplyCondizioni(); lsSave(); updateBadge(); refreshCard(pid); updateCartUI(); }
+  else { addCart(pid, next); }
+}
+
 function toggleBancaleMode(){
   _bancaleMode = !_bancaleMode;
   var btn = document.getElementById('btn-bancale-mode');
@@ -2054,7 +2072,7 @@ function toggleBancaleMode(){
 }
 function makeCard(p){
   var inc = cart.find(function(c){ return c.id===p.id; });
-  var mq = inc ? inc.mq : 1;
+  var mq = inc ? inc.mq : 0;
   var sid = 'mq_'+p.id.replace(/[^a-zA-Z0-9]/g,'_');
   var safe = p.id.replace(/[^a-zA-Z0-9]/g,'_');
   var h = '<div class="card'+(inc?' in-cart':'')+'" id="crd_'+safe+'">';
@@ -2072,7 +2090,7 @@ function makeCard(p){
   var hasCond = !!_condRow(p);
   var prCls = hasCond ? 'card-price-row has-cond' : 'card-price-row';
   if(_bancaleMode && p.m){
-    var bancali = inc ? Math.round((inc.mq / p.m)*10)/10 : 1;
+    var bancali = inc ? Math.round((inc.mq / p.m)*10)/10 : 0;
     var priceBanc = (p.p!==null&&p.p!==undefined) ? '€ '+(parseFloat(p.p)*p.m).toFixed(2).replace('.',',') : '—';
     h += '<div class="'+prCls+'"><div><div class="price-lbl">Prezzo lordo bancale</div><span class="price-val">'+priceBanc+'</span></div><span class="price-mq">'+p.m+' m²/banc.</span></div>';
   } else {
@@ -2085,10 +2103,14 @@ function makeCard(p){
   h += '</div>';
   h += '<div class="card-ctrl">';
   if(_bancaleMode && p.m){
-    var bancali2 = inc ? Math.round((inc.mq / p.m)*10)/10 : 1;
-    h += '<div class="mq-wrap"><div class="mq-lbl">Banc.</div><input type="number" class="mq-inp" id="'+sid+'" value="'+bancali2+'" min="1" step="1"></div>';
+    var bancali2 = inc ? Math.round((inc.mq / p.m)*10)/10 : 0;
+    h += '<div style="display:flex;align-items:center;gap:3px">'
+      +'<button class="mq-pm-btn" onclick="_cardBancStep(\''+p.id+'\',\''+sid+'\',-1)" tabindex="-1">&#8722;</button>'
+      +'<div class="mq-wrap" style="flex:1"><div class="mq-lbl">Banc.</div><input type="number" class="mq-inp" id="'+sid+'" value="'+bancali2+'" min="0" step="1" style="color:#111;-webkit-text-fill-color:#111"></div>'
+      +'<button class="mq-pm-btn" onclick="_cardBancStep(\''+p.id+'\',\''+sid+'\',1)" tabindex="-1">+</button>'
+      +'</div>';
   } else {
-    h += '<div class="mq-wrap"><div class="mq-lbl">M²</div><input type="number" class="mq-inp" id="'+sid+'" value="'+mq+'" min="0.01" step="0.5"></div>';
+    h += '<div class="mq-wrap"><div class="mq-lbl">M²</div><input type="number" class="mq-inp" id="'+sid+'" value="'+mq+'" min="0" step="0.5" style="color:#111;-webkit-text-fill-color:#111"></div>';
   }
   if(inc){
     h += '<button class="btn-rem" onclick="removeCart(\''+p.id+'\')">&#10003; Nel carrello</button>';
@@ -2815,6 +2837,7 @@ function fmtE(v){ return '€ '+v.toFixed(2).replace('.',','); }
 // Save order
 function saveOrder(){
   if(!cart.length){ toast('Carrello vuoto'); return; }
+  if(!_cartClientId){ toast('Seleziona un cliente prima di salvare'); var sel=document.getElementById('cp-client'); if(sel){sel.style.outline='2px solid #c0392b'; setTimeout(function(){sel.style.outline='';},2000);} return; }
   var cl=clients.find(function(c){return c.id===_cartClientId;});
   var cid=cl?cl.id:''; var cn=cl?cl.name:(_cartRef||'Senza cliente');
   var total=cart.reduce(function(s,i){return s+_cartItemTot(i);},0);
@@ -2906,7 +2929,7 @@ function renderDetail(id){
   cOrds.forEach(function(o){
     h+='<div class="ord-card" onclick="openOrderModal(\''+o.id+'\')"><div class="ord-hdr"><span class="ord-date">'+fmtD(o.date)+(o.rif?' · '+x(o.rif):'')+'</span><span class="ord-total">€ '+o.total.toFixed(2).replace('.',',')+'</span></div>';
     h+='<div class="ord-count">'+o.items.length+' prodotti</div>';
-    h+='<div class="ord-prev">'+o.items.slice(0,3).map(function(i){return x(i.s)+' — '+x(i.c)+' · '+i.qty+'m²';}).join(' | ')+'</div>';
+    h+='<div class="ord-prev">'+o.items.slice(0,3).map(function(i){return x(i.s)+' — '+x(i.c)+' · '+(i.mq||i.qty||0)+'m²';}).join(' | ')+'</div>';
     if(o.note) h+='<div style="font-size:10px;color:#aaa;margin-top:4px;font-style:italic">'+x(o.note)+'</div>';
     h+='</div>';
   });
@@ -3093,7 +3116,8 @@ function openOrderModal(oid){
   if(o.rif) h+='<div style="font-size:11px;color:#888;margin-bottom:8px">Rif: '+x(o.rif)+'</div>';
   if(o.note) h+='<div style="background:#F4F3EF;border-radius:6px;padding:8px;margin-bottom:12px;font-size:12px;color:#888">'+x(o.note)+'</div>';
   o.items.forEach(function(i){
-    h+='<div class="od-item"><span class="od-badge">'+x(i.s.substring(0,6))+'</span><div class="od-info"><div class="od-n">'+x(i.s)+' — '+x(i.c)+'</div><div class="od-d">'+x(i.z)+' · '+x(i.f)+'</div></div><span class="od-mq">'+i.qty+' m²</span><span class="od-pr">€ '+(i.p*i.qty).toFixed(2).replace('.',',')+'</span></div>';
+    var iqty=parseFloat(i.mq||i.qty)||0;
+    h+='<div class="od-item"><span class="od-badge">'+x(i.s.substring(0,6))+'</span><div class="od-info"><div class="od-n">'+x(i.s)+' — '+x(i.c)+'</div><div class="od-d">'+x(i.z)+' · '+x(i.f)+'</div></div><span class="od-mq">'+iqty.toFixed(2).replace('.',',')+' m²</span><span class="od-pr">€ '+(i.p*iqty).toFixed(2).replace('.',',')+'</span></div>';
   });
   h+='<div style="text-align:right;font-weight:800;color:#1A7A3C;font-size:15px;margin-top:14px;padding-top:10px;border-top:2px solid #E4E2DC">Totale: € '+o.total.toFixed(2).replace('.',',')+'</div>';
   document.getElementById('m-order-body').innerHTML=h;
@@ -3109,7 +3133,8 @@ function toggleOrdText(){
     var o = orders.find(function(x){return x.id===currentOid;}); if(!o) return;
     var lines = ['Ordinare x '+(o.cname||'')+(o.rif?' con riferimento '+o.rif:'')+' :', ''];
     o.items.forEach(function(i){
-      lines.push(i.s+' '+i.c+' '+i.z+(i.f?' '+i.f:'')+' - '+i.qty.toFixed(2).replace('.',',')+' mq - € '+(i.p*i.qty).toFixed(2).replace('.',','));
+      var iqty2=parseFloat(i.mq||i.qty)||0;
+      lines.push(i.s+' '+i.c+' '+i.z+(i.f?' '+i.f:'')+' - '+iqty2.toFixed(2).replace('.',',')+' mq - € '+(i.p*iqty2).toFixed(2).replace('.',','));
     });
     lines.push(''); lines.push('Grazie, saluti');
     document.getElementById('ord-output').textContent = lines.join('\n');
