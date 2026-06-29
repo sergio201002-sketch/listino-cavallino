@@ -175,9 +175,9 @@ header{background:#111;padding:0 16px;height:54px;display:flex;align-items:cente
 .price-val{font-size:14px;font-weight:800;color:#003399}
 .price-mq{font-size:10px;color:#222;margin-left:auto;font-weight:700}
 .card-price-row.has-cond{border-radius:6px 6px 0 0;padding:3px 10px}
-.card-price-row.has-cond .price-val{font-size:9px;font-weight:500;color:#bbb}
-.card-price-row.has-cond .price-lbl{font-size:6px;color:#ccc}
-.card-price-row.has-cond .price-mq{font-size:8px;color:#ccc}
+.card-price-row.has-cond .price-val{font-size:12px;font-weight:700;color:#888}
+.card-price-row.has-cond .price-lbl{font-size:7px;color:#aaa}
+.card-price-row.has-cond .price-mq{font-size:9px;color:#111;font-weight:800}
 .card-cond-row{display:flex;background:#fff;border:1px solid #E4E2DC;border-top:none;border-radius:0 0 6px 6px;overflow:hidden;margin-bottom:0}
 .card-cond-cell{flex:1;text-align:center;padding:4px 2px;border-right:1px solid #E4E2DC}
 .card-cond-cell:last-child{border-right:none}
@@ -1412,7 +1412,7 @@ _customProds.forEach(function(cp){
 });
 
 // STATE
-var _BUILD_TS = '1782729084';
+var _BUILD_TS = '1782729394';
 if(lsGet('cc_build_ts')!==_BUILD_TS){ try{localStorage.removeItem('cc_cart');}catch(e){} try{localStorage.setItem('cc_build_ts',_BUILD_TS);}catch(e){} }
 var cart = lsGet('cc_cart') || [];
 var clients = lsGet('cc_clients') || [];
