@@ -1174,7 +1174,7 @@ window.FIREBASE_CONFIG = {
       <button class="sett-tab" onclick="settTab(this,'sett-logo')">&#128444; Logo</button>
       <button class="sett-tab" onclick="settTab(this,'sett-dest')">&#128100; Destinatari</button>
       <button class="sett-tab" onclick="settTab(this,'sett-cloud')">&#9729; Cloud</button>
-      <button class="sett-tab" onclick="settTab(this,'sett-listino')">&#128200; Listino</button>
+      <button class="sett-tab" id="sett-tab-listino" onclick="settTab(this,'sett-listino')" style="display:none">&#128200; Listino</button>
     </div>
     <div class="sett-body">
       <!-- TAB: Prodotti -->
@@ -1412,7 +1412,7 @@ _customProds.forEach(function(cp){
 });
 
 // STATE
-var _BUILD_TS = '1782742395';
+var _BUILD_TS = '1782824850';
 if(lsGet('cc_build_ts')!==_BUILD_TS){ try{localStorage.removeItem('cc_cart');}catch(e){} try{localStorage.setItem('cc_build_ts',_BUILD_TS);}catch(e){} }
 var cart = lsGet('cc_cart') || [];
 var clients = lsGet('cc_clients') || [];
@@ -1472,19 +1472,13 @@ function _fbSetStatus(s){
 }
 
 function _fbGetPayload(){
-  return {
-    clients: clients,
-    orders: orders,
-    expositors: expositors,
-    customProds: _customProds,
-    savedAt: Date.now(),
-    device: _myDeviceId
-  };
+  // Ordini per-utente; clienti/espositori gestiti dall'admin nel documento condiviso
+  return { orders: orders, savedAt: Date.now(), device: _myDeviceId };
 }
 
 function _fbScore(d){
   if(!d) return 0;
-  return ((d.clients||[]).length*10) + ((d.orders||[]).length*5) + ((d.expositors||[]).length*3) + ((d.customProds||[]).length*2);
+  return ((d.orders||[]).length*5);
 }
 
 async function cloudSaveNow(){
@@ -1493,10 +1487,20 @@ async function cloudSaveNow(){
   clearTimeout(_fbSaveTimer);
   _fbSetStatus('saving');
   try {
+    // Salva ordini per-utente
     var ref = window.fbAPI.doc(window.fbDb, 'cavallino', window.fbUser.uid);
     await window.fbAPI.setDoc(ref, { data: JSON.stringify(_fbGetPayload()), device: _myDeviceId, updatedAt: Date.now() });
+    // Admin: salva anche clienti/espositori nel documento condiviso
+    if(_isAdmin()){
+      var sharedRef = window.fbAPI.doc(window.fbDb, 'cavallino', '__shared_data__');
+      await window.fbAPI.setDoc(sharedRef, {
+        clients: JSON.stringify(clients),
+        expositors: JSON.stringify(expositors),
+        updatedAt: Date.now()
+      });
+    }
     _fbSetStatus('saved');
-  } catch(e){ console.error('cloudSaveNow', e); /* non mostrare errore per salvataggio silenzioso */ }
+  } catch(e){ console.error('cloudSaveNow', e); }
 }
 
 function cloudSave(){
@@ -1510,17 +1514,12 @@ function cloudSave(){
 function _fbApplyRemote(d){
   if(!d || d.device === _myDeviceId) return;
   var remScore = _fbScore(d);
-  var locScore = _fbScore({clients:clients,orders:orders,expositors:expositors,customProds:_customProds});
+  var locScore = _fbScore({orders:orders});
   if(remScore === 0 && locScore > 0) return;
   _fbApplying = true;
   try {
-    if(d.clients)    clients    = d.clients;
     if(d.orders)     orders     = d.orders;
-    if(d.expositors) expositors = d.expositors;
-    if(d.customProds){ _customProds = d.customProds; localStorage.setItem('cc_custom_products', JSON.stringify(_customProds)); }
-    localStorage.setItem('cc_clients',    JSON.stringify(clients));
-    localStorage.setItem('cc_orders',     JSON.stringify(orders));
-    localStorage.setItem('cc_expositors', JSON.stringify(expositors));
+    localStorage.setItem('cc_orders', JSON.stringify(orders));
     updateBadge();
     try { renderClientList(); } catch(_){}
   } finally { _fbApplying = false; }
@@ -1561,6 +1560,77 @@ function fbToggleLogin(){
 }
 
 var _fbUnsub = null;
+var _fbUnsubShared = null;
+var _ADMIN_EMAIL = 'sergio201002@gmail.com';
+var _ALLOWED_EMAILS = ['sergio201002@gmail.com', 'dalonzofranco@gmail.com'];
+
+function _isAdmin(){ return window.fbUser && window.fbUser.email === _ADMIN_EMAIL; }
+
+async function _saveSharedListino(){
+  if(!window.fbReady || !window.fbDb) return;
+  try {
+    var ref = window.fbAPI.doc(window.fbDb, 'cavallino', '__shared__');
+    await window.fbAPI.setDoc(ref, { condizioni: JSON.stringify(_CONDIZIONI), updatedAt: Date.now() });
+    console.log('Listino condiviso salvato su Firestore');
+  } catch(e){ console.error('_saveSharedListino', e); }
+}
+
+function _applySharedListino(data){
+  if(!data || !data.condizioni) return;
+  try {
+    var c = JSON.parse(data.condizioni);
+    if(Array.isArray(c) && c.length > 0){
+      _CONDIZIONI = c;
+      // Ricalcola automaticamente i prezzi nel carrello
+      cart.forEach(function(i){ i.priceManual=false; });
+      _autoApplyCondizioni();
+      updateCartUI();
+      try { _listinoRender(); } catch(_){}
+    }
+  } catch(e){ console.error('_applySharedListino', e); }
+}
+
+var _fbUnsubSharedData = null;
+function _applySharedData(data){
+  if(!data) return;
+  _fbApplying = true;
+  try {
+    if(data.clients){ clients = JSON.parse(data.clients); localStorage.setItem('cc_clients', JSON.stringify(clients)); }
+    if(data.expositors){ expositors = JSON.parse(data.expositors); localStorage.setItem('cc_expositors', JSON.stringify(expositors)); }
+    try { renderClientList(); } catch(_){}
+    try { updateBadge(); } catch(_){}
+  } catch(e){ console.error('_applySharedData', e); }
+  finally { _fbApplying = false; }
+}
+async function _startSharedDataSync(){
+  if(!window.fbReady || !window.fbDb) return;
+  if(_fbUnsubSharedData){ try{ _fbUnsubSharedData(); }catch(_){} _fbUnsubSharedData = null; }
+  var ref = window.fbAPI.doc(window.fbDb, 'cavallino', '__shared_data__');
+  try {
+    var snap = await window.fbAPI.getDoc(ref);
+    if(snap.exists()) _applySharedData(snap.data());
+  } catch(e){ console.error('shared data load', e); }
+  _fbUnsubSharedData = window.fbAPI.onSnapshot(ref, function(snap){
+    if(!snap.exists()) return;
+    _applySharedData(snap.data());
+  });
+}
+
+async function _startSharedListinoSync(){
+  if(!window.fbReady || !window.fbDb) return;
+  if(_fbUnsubShared){ try{ _fbUnsubShared(); }catch(_){} _fbUnsubShared = null; }
+  var ref = window.fbAPI.doc(window.fbDb, 'cavallino', '__shared__');
+  // Carica subito
+  try {
+    var snap = await window.fbAPI.getDoc(ref);
+    if(snap.exists()) _applySharedListino(snap.data());
+  } catch(e){ console.error('shared listino load', e); }
+  // Ascolta aggiornamenti in tempo reale
+  _fbUnsubShared = window.fbAPI.onSnapshot(ref, function(snap){
+    if(!snap.exists()) return;
+    _applySharedListino(snap.data());
+  });
+}
 function _fbUpdateSettingsUI(){
   var userEl = document.getElementById('sett-cloud-user');
   var loginBtn = document.getElementById('sett-fb-login-btn');
@@ -1574,6 +1644,8 @@ function _fbUpdateSettingsUI(){
     }
   }
   if(loginBtn) loginBtn.textContent = window.fbUser ? 'Esci dall\'account' : 'Accedi con Google';
+  var listinoTab = document.getElementById('sett-tab-listino');
+  if(listinoTab) listinoTab.style.display = _isAdmin() ? '' : 'none';
 }
 
 async function fbManualSave(){
@@ -1603,9 +1675,13 @@ async function fbManualLoad(){
 
 window.onFbAuthChange = async function(user){
   if(_fbUnsub){ try{ _fbUnsub(); }catch(_){} _fbUnsub = null; }
-  if(!user){
-    // Non loggato
+  if(!user){ _fbSetStatus('offline'); _fbUpdateSettingsUI(); return; }
+  // Controlla email autorizzata
+  if(_ALLOWED_EMAILS.indexOf(user.email) === -1){
+    toast('⛔ Accesso non autorizzato: ' + (user.email||''));
+    await window.fbAPI.signOut(window.fbAuth);
     _fbSetStatus('offline');
+    _fbUpdateSettingsUI();
     return;
   }
   // Loggato: mostra subito il nome, poi sincronizza
@@ -1626,6 +1702,9 @@ window.onFbAuthChange = async function(user){
       await cloudSaveNow();
     }
     toast('✓ Connesso come ' + nome);
+    // Avvia sync dati condivisi (clienti/espositori) e listino prezzi
+    _startSharedDataSync();
+    _startSharedListinoSync();
     _fbUnsub = window.fbAPI.onSnapshot(ref, function(snap){
       if(!snap.exists()) return;
       var d = snap.data();
@@ -2550,7 +2629,9 @@ function _listinoSave(){
   cart.forEach(function(i){ i.priceManual=false; });
   _autoApplyCondizioni();
   updateCartUI();
-  alert('Listino salvato. I prezzi nel carrello sono stati aggiornati.');
+  // Se admin loggato → pubblica il listino per tutti
+  if(_isAdmin() && window.fbReady){ _saveSharedListino(); alert('Listino salvato e pubblicato per tutti gli utenti.'); }
+  else { alert('Listino salvato. I prezzi nel carrello sono stati aggiornati.'); }
   _listinoRender();
 }
 
